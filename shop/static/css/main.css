@@ -1,0 +1,30 @@
+@font-face {
+    font-family: 'vi-my-ha-hoa';
+    src: url('../fonts/vi-my-ha-hoa.ttf') format("truetype");
+}
+
+.navbar-brand {
+    font-family: 'vi-my-ha-hoa';
+    font-size: 3rem;
+    word-spacing: 0.4rem;
+}
+
+.carousel-image {
+    height: 400px;
+    object-fit: cover !important;
+}
+
+.carousel-item>div {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.nav-link{
+    font-size: 40px;
+}
+.navbar-dark {
+    --bs-navbar-color: #000000;
+    --bs-navbar-hover-color: #000000;
+    --bs-navbar-active-color: #000000;
+}
