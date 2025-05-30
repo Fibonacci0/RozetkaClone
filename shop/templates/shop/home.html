@@ -1,0 +1,14 @@
+{% extends "shop/_layout.html" %}
+
+{% block title %}Головна сторінка{% endblock %}
+
+{% block content %}
+<h1>Список продуктів</h1>
+<ul>
+    {% for product in products %}
+        <li>{{ product.name }} — {{ product.price }} грн</li>
+    {% empty %}
+        <li>Продуктів немає</li>
+    {% endfor %}
+</ul>
+{% endblock %}
