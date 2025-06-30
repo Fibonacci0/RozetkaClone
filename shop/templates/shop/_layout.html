@@ -4,18 +4,16 @@
 <html lang="en">
 
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{% block title %}{% endblock %}Life With Vicky</title>
-    <meta name="description" content="{% block meta_description %}{%endblock %}">
-    {% block canonical %}{%endblock %}
-    {% block opengraph %}{%endblock %}
-    
+    <meta name="description" content="{% block meta_description %}{% endblock %}" />
+    {% block canonical %}{% endblock %}
+    {% block opengraph %}{% endblock %}
+
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    
-    <link rel="stylesheet" type='text/css' href="{% static 'css/main.css' %}">
-    
+    <link rel="stylesheet" type="text/css" href="{% static 'css/main.css' %}" />
+
     <script>
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
@@ -23,46 +21,45 @@
             sidebar.classList.toggle('-translate-x-full');
             overlay.classList.toggle('hidden');
         }
-        
+
         function closeSidebar() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebar-overlay');
             sidebar.classList.add('-translate-x-full');
             overlay.classList.add('hidden');
         }
-        
-        document.addEventListener('DOMContentLoaded', function() {
+
+        document.addEventListener('DOMContentLoaded', function () {
             const catalogButton = document.getElementById('catalog-button');
             const catalogDropdown = document.getElementById('catalog-dropdown');
             const languageButton = document.getElementById('language-button');
             const languageDropdown = document.getElementById('language-dropdown');
-            
+
             if (catalogButton && catalogDropdown) {
-                catalogButton.addEventListener('click', function(e) {
-                    e.stopPropagation(); 
+                catalogButton.addEventListener('click', function (e) {
+                    e.stopPropagation();
                     catalogDropdown.classList.toggle('hidden');
                 });
-                
-                document.addEventListener('click', function(e) {
+
+                document.addEventListener('click', function (e) {
                     if (!catalogButton.contains(e.target) && !catalogDropdown.contains(e.target)) {
                         catalogDropdown.classList.add('hidden');
                     }
                 });
             }
-            
+
             if (languageButton && languageDropdown) {
-                languageButton.addEventListener('click', function(e) {
-                    e.stopPropagation(); 
+                languageButton.addEventListener('click', function (e) {
+                    e.stopPropagation();
                     languageDropdown.classList.toggle('hidden');
                 });
-                
-                document.addEventListener('click', function(e) {
+
+                document.addEventListener('click', function (e) {
                     if (!languageButton.contains(e.target) && !languageDropdown.contains(e.target)) {
                         languageDropdown.classList.add('hidden');
                     }
                 });
             }
-
 
             const sidebarOverlay = document.getElementById('sidebar-overlay');
             if (sidebarOverlay) {
@@ -70,66 +67,72 @@
             }
         });
     </script>
-</head><!-- Модальне вікно входу -->
-<div id="loginModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
-  <div class="bg-white w-full max-w-md p-6 rounded-xl relative shadow-2xl">
-    <button id="closeLoginModal" class="absolute top-4 right-4 text-gray-400 hover:text-black text-2xl leading-none">
-      &times;
-    </button>
-    <h2 class="text-2xl font-bold text-center mb-6">Вхід</h2>
-    
-    <input type="tel" placeholder="+38 0" class="w-full border border-gray-300 rounded-lg p-3 mb-4 focus:outline-none focus:ring-2 focus:ring-green-600" />
-
-    <button class="bg-green-600 text-white w-full py-3 rounded-lg font-semibold text-lg hover:bg-green-700 transition mb-4">
-      Продовжити
-    </button>
-
-    <p class="text-sm text-gray-500 text-center mb-4">
-      Продовжуючи, ви підтверджуєте, що згодні увійти до облікового запису Rozetka та надати згоду на
-      <a href="#" class="text-blue-600 hover:underline">обробку персональних даних</a>
-    </p>
-
-    <div class="text-center text-gray-400 mb-4">або</div>
-
-    <button class="w-full py-3 border rounded-lg flex items-center justify-center hover:bg-gray-100 transition mb-2">
-      <img src="{% static 'images/google.png' %}" alt="Google" class="w-5 h-5 mr-3"> Продовжити через Google
-    </button>
-
-    <button class="w-full py-3 border rounded-lg flex items-center justify-center hover:bg-gray-100 transition">
-      <img src="{% static 'images/apple.png' %}" alt="Apple" class="w-5 h-5 mr-3"> Продовжити через Apple
-    </button>
-
-    <div class="text-center mt-4">
-      <a href="#" class="text-blue-600 hover:underline text-sm">Інші способи авторизації</a>
-    </div>
-  </div>
-</div>
+</head>
 
 <body class="min-h-screen flex flex-col bg-gray-50">
-
-    <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden lg:hidden"></div>
     
+    <!-- Login Modal -->
+    <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
+        <div class="bg-white w-full max-w-md p-6 rounded-xl relative shadow-2xl">
+            <button id="closeLoginModal" class="absolute top-4 right-4 text-gray-400 hover:text-black text-2xl leading-none">&times;</button>
+            <h2 class="text-2xl font-bold text-center mb-6">Вхід</h2>
+            <input type="tel" placeholder="+38 0" class="w-full border border-gray-300 rounded-lg p-3 mb-4 focus:outline-none focus:ring-2 focus:ring-green-600" />
+            <button class="bg-green-600 text-white w-full py-3 rounded-lg font-semibold text-lg hover:bg-green-700 transition mb-4">Продовжити</button>
+            <p class="text-sm text-gray-500 text-center mb-4">
+                Продовжуючи, ви підтверджуєте, що згодні увійти до облікового запису Rozetka та надати згоду на
+                <a href="#" class="text-blue-600 hover:underline">обробку персональних даних</a>
+            </p>
+            <div class="text-center text-gray-400 mb-4">або</div>
+
+            <a href="{% url 'social:begin' 'google-oauth2' %}?next={{ request.path }}">
+                <button class="w-full py-3 border rounded-lg flex items-center justify-center hover:bg-gray-100 transition mb-2">
+                    <img src="{% static 'images/google.png' %}" alt="Google" class="w-5 h-5 mr-3" />
+                    Продовжити через Google
+                </button>
+            </a>
+            
+
+            <button class="w-full py-3 border rounded-lg flex items-center justify-center hover:bg-gray-100 transition">
+                <img src="{% static 'images/apple.png' %}" alt="Apple" class="w-5 h-5 mr-3" /> Продовжити через Apple
+            </button>
+            <div class="text-center mt-4">
+                <a href="#" class="text-blue-600 hover:underline text-sm">Інші способи авторизації</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="dropdown">
+        <button onclick="toggleDropdown()" class="dropbtn">Меню</button>
+        <div id="myDropdown" class="dropdown-content">
+          <a href="#">Опція 1</a>
+          <a href="#">Опція 2</a>
+          <a href="#">Опція 3</a>
+        </div>
+      </div>
+      
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden lg:hidden"></div>
+
     <div id="sidebar" class="fixed left-0 top-0 h-full w-80 bg-white shadow-lg z-50 transform -translate-x-full transition-transform duration-300 ease-in-out lg:hidden">
         <div class="p-4">
             <div class="flex items-center justify-between mb-6">
                 <a href="{% url 'home' %}" class="flex items-center">
-                    <img src="https://content2.rozetka.com.ua/mb_logo/image_site_light_theme/original/555588630.svg" alt="Logo" class="h-8 w-auto">
-                    <!-- <img src="{% static 'images/logo_icon.png' %}" alt="Logo" class="h-8 w-auto"> -->
-                    
+                    <img src="https://content2.rozetka.com.ua/mb_logo/image_site_light_theme/original/555588630.svg" alt="Logo" class="h-8 w-auto" />
                     <span class="text-xl font-bold ml-2">rozetka</span>
                 </a>
                 <button onclick="closeSidebar()" class="text-gray-500 hover:text-gray-700 focus:outline-none">
-                    <i class="fa-solid fa-times text-2xl"></i> </button>
+                    <i class="fa-solid fa-times text-2xl"></i>
+                </button>
             </div>
-            
+
             <div class="mb-6">
                 <div class="flex items-center bg-gray-100 rounded-lg overflow-hidden">
-                    <input type="text" placeholder="Я шукаю..." class="py-3 px-4 flex-grow focus:outline-none text-gray-800 bg-transparent">
+                    <input type="text" placeholder="Я шукаю..." class="py-3 px-4 flex-grow focus:outline-none text-gray-800 bg-transparent" />
                     <button class="bg-green-600 text-white px-4 py-3 hover:bg-green-700 focus:outline-none">
-                        <i class="fa-solid fa-search text-xl"></i> </button>
+                        <i class="fa-solid fa-search text-xl"></i>
+                    </button>
                 </div>
             </div>
-            
+
             <nav class="space-y-2">
                 <div class="mb-4">
                     <h3 class="text-lg font-semibold text-gray-800 mb-3">Каталог</h3>
@@ -142,7 +145,7 @@
                         <a href="#" class="block px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">Автомобілі</a>
                     </div>
                 </div>
-                
+
                 <div class="border-t pt-4">
                     <a href="#" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
                         <i class="fa-solid fa-user-circle w-5 h-5 mr-3"></i> Мій профіль
@@ -161,18 +164,12 @@
     <header class="bg-black py-3 shadow-lg relative z-30">
         <div class="container mx-auto px-4 flex items-center justify-between">
             <button onclick="toggleSidebar()" class="lg:hidden text-white focus:outline-none hover:text-gray-300 transition-colors">
-                <i class="fa-solid fa-bars text-xl"></i> </button>
+                <i class="fa-solid fa-bars text-xl"></i>
+            </button>
 
             <div class="flex items-center space-x-3">
                 <a href="{% url 'home' %}" class="flex items-center space-x-3">
-                    <img src="https://content2.rozetka.com.ua/mb_logo/image_site_light_theme/original/555588630.svg" alt="Logo" class="h-10 w-auto">
-                    <!-- <img src="{% static 'images/logo_icon.png' %}"alt="Logo" class="h-10 w-auto"> -->
-                    <!-- <div class="hidden sm:block">
-                        <h1 class="text-white text-xl font-bold">Life With Vicky</h1>
-                        <span class="bg-yellow-400 text-black px-2 py-1 rounded-full text-xs font-bold rotate-[-2deg] transform origin-bottom-left inline-block">
-                            100 років поруч
-                        </span>
-                    </div> -->
+                    <img src="https://content2.rozetka.com.ua/mb_logo/image_site_light_theme/original/555588630.svg" alt="Logo" class="h-10 w-auto" />
                 </a>
             </div>
 
@@ -203,10 +200,8 @@
                 </div>
 
                 <div class="flex-grow flex items-center bg-white rounded-lg overflow-hidden max-w-2xl shadow-sm">
-                    <input type="text" placeholder="Що шукаєте сьогодні?" class="py-3 px-4 flex-grow focus:outline-none text-gray-800 placeholder-gray-500">
-                    <button class="bg-green-600 text-white px-6 py-3 hover:bg-green-700 focus:outline-none transition-colors font-medium">
-                        Знайти
-                    </button>
+                    <input type="text" placeholder="Що шукаєте сьогодні?" class="py-3 px-4 flex-grow focus:outline-none text-gray-800 placeholder-gray-500" />
+                    <button class="bg-green-600 text-white px-6 py-3 hover:bg-green-700 focus:outline-none transition-colors font-medium">Знайти</button>
                 </div>
             </nav>
 
@@ -214,7 +209,8 @@
                 <div class="relative">
                     <button id="language-button" class="text-white flex items-center space-x-1 focus:outline-none hover:text-gray-300 transition-colors">
                         <span class="font-medium">UA</span>
-                        <i class="fa-solid fa-chevron-down text-xs"></i> </button>
+                        <i class="fa-solid fa-chevron-down text-xs"></i>
+                    </button>
                     <div id="language-dropdown" class="absolute hidden bg-white text-gray-800 rounded-lg shadow-lg mt-2 w-20 right-0 z-10 border">
                         <a href="#" class="block px-4 py-2 hover:bg-gray-100 transition-colors text-center">EN</a>
                         <a href="#" class="block px-4 py-2 hover:bg-gray-100 transition-colors text-center">RU</a>
@@ -222,24 +218,36 @@
                 </div>
 
                 <button id="openLoginModal" style="padding: 5px;">
-                    <img src="{% static 'images/free-icon-font-user.png' %}" alt="User Icon" width="25" height="25">
+                    <img src="{% static 'images/free-icon-font-user.png' %}" alt="User Icon" width="25" height="25" />
                 </button>
 
-                <a href="#" class="text-white hover:text-gray-300 transition-colors p-1">
-                    <i class="fa-solid fa-user text-xl"  ></i> </a>
+                <button id="openCartModal" style="padding: 5px;">
+                    <img src="{% static 'images/free-icon-font-shopping-cart.png' %}" alt="Cart Icon" width="25" height="25" />
+                </button>
                 
-                <a href="#" class="text-white hover:text-gray-300 transition-colors p-1 relative">
-                    <i class="fa-solid fa-shopping-cart text-xl"></i> <span class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">3</span>
-                </a>
+                <div id="cartModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
+                    <div class="bg-white w-full max-w-xl h-96 p-6 rounded-xl relative shadow-2xl flex flex-col items-center text-center">
+                        <button id="closeCartModal" class="absolute top-4 right-4 text-gray-400 hover:text-black text-2xl leading-none">&times;</button>
+                        <h2 class="text-2xl font-bold mb-6">Корзина</h2>
+                        <img src="../../static/images/modal-cart-dummy.svg" alt="Cart Icon" class="mb-6 w-40 h-40 object-contain" />
+                        <p class="text-gray-700 text-lg">Кошик порожній</p>
+                            <span style="color: rgb(168, 175, 180);">Але це ніколи не пізно виправити</span>
+                    </div>
+                </div>
+                
+                
+        
             </div>
         </div>
     </header>
-    
+
     <main class="flex-grow">
         {% block content %}
         {% endblock %}
     </main>
+
     
+      
     <footer class="bg-gray-900 text-white mt-auto">
         <div class="bg-green-600 py-8">
             <div class="container mx-auto px-4">
@@ -249,40 +257,38 @@
                         <p class="text-green-100">Отримуйте найкращі пропозиції та акції першими</p>
                     </div>
                     <div class="flex w-full max-w-md">
-                        <input type="email" placeholder="Ваш email" class="flex-grow py-3 px-4 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 text-gray-800">
-                        <button class="bg-yellow-400 text-black px-6 py-3 rounded-r-lg hover:bg-yellow-500 transition-colors font-medium focus:outline-none focus:ring-2 focus:ring-yellow-400">
-                            Підписатися
-                        </button>
+                        <input type="email" placeholder="Ваш email" class="flex-grow py-3 px-4 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 text-gray-800" />
+                        <button class="bg-yellow-400 text-black px-6 py-3 rounded-r-lg hover:bg-yellow-500 transition-colors font-medium focus:outline-none focus:ring-2 focus:ring-yellow-400">Підписатися</button>
                     </div>
                 </div>
             </div>
         </div>
-        
+
         <div class="container mx-auto px-4 py-12">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                 <div class="space-y-4">
                     <div class="flex items-center space-x-3">
-                        <img src="https://content2.rozetka.com.ua/mb_logo/image_site_light_theme/original/555588630.svg" alt="Logo" class="h-10 w-auto">
-                        <!-- <div>
-                            <h3 class="text-xl font-bold">rozetka</h3>
-                            <span class="text-yellow-400 text-sm font-medium">100 років поруч</span>
-                        </div> -->
+                        <img src="https://content2.rozetka.com.ua/mb_logo/image_site_light_theme/original/555588630.svg" alt="Logo" class="h-10 w-auto" />
                     </div>
                     <p class="text-gray-300 leading-relaxed">
                         Ваш надійний партнер у світі покупок. Якісні товари, доступні ціни та відмінний сервіс вже понад століття.
                     </p>
                     <div class="flex space-x-4">
                         <a href="#" class="text-gray-400 hover:text-white transition-colors">
-                            <i class="fa-brands fa-twitter text-2xl"></i> </a>
+                            <i class="fa-brands fa-twitter text-2xl"></i>
+                        </a>
                         <a href="#" class="text-gray-400 hover:text-white transition-colors">
-                            <i class="fa-brands fa-facebook-f text-2xl"></i> </a>
+                            <i class="fa-brands fa-facebook-f text-2xl"></i>
+                        </a>
                         <a href="#" class="text-gray-400 hover:text-white transition-colors">
-                            <i class="fa-brands fa-instagram text-2xl"></i> </a>
+                            <i class="fa-brands fa-instagram text-2xl"></i>
+                        </a>
                         <a href="#" class="text-gray-400 hover:text-white transition-colors">
-                            <i class="fa-brands fa-pinterest-p text-2xl"></i> </a>
+                            <i class="fa-brands fa-pinterest-p text-2xl"></i>
+                        </a>
                     </div>
                 </div>
-                
+
                 <div class="space-y-4">
                     <h4 class="text-lg font-semibold">Швидкі посилання</h4>
                     <ul class="space-y-3">
@@ -294,7 +300,7 @@
                         <li><a href="#" class="text-gray-300 hover:text-white transition-colors">Карʼєра</a></li>
                     </ul>
                 </div>
-                
+
                 <div class="space-y-4">
                     <h4 class="text-lg font-semibold">Обслуговування</h4>
                     <ul class="space-y-3">
@@ -306,53 +312,62 @@
                         <li><a href="#" class="text-gray-300 hover:text-white transition-colors">Контакти</a></li>
                     </ul>
                 </div>
-                
+
                 <div class="space-y-4">
                     <h4 class="text-lg font-semibold">Контакти</h4>
-                    <div class="space-y-3">
-                        <div class="flex items-start space-x-3">
-                            <i class="fa-solid fa-map-marker-alt w-5 h-5 text-green-400 mt-1 flex-shrink-0"></i> <div>
-                                <p class="text-gray-300">вул. Головна, 123</p>
-                                <p class="text-gray-300">Київ, Україна 01001</p>
-                            </div>
-                        </div>
-                        
-                        <div class="flex items-center space-x-3">
-                            <i class="fa-solid fa-phone w-5 h-5 text-green-400 flex-shrink-0"></i> <a href="tel:+380121234567" class="text-gray-300 hover:text-white transition-colors">+380 (44) 123-45-67</a>
-                        </div>
-                        <div class="flex items-center space-x-3">
-                            <i class="fa-solid fa-envelope w-5 h-5 text-green-400 flex-shrink-0"></i> <a href="mailto:info@rozetka" class="text-gray-300 hover:text-white transition-colors">info@rozetka.com</a>
-                        </div>
-                    </div>
+                    <ul class="space-y-3 text-gray-300">
+                        <li><i class="fa-solid fa-phone mr-2"></i> +38 (044) 555-55-55</li>
+                        <li><i class="fa-solid fa-envelope mr-2"></i> support@rozetka.ua</li>
+                        <li><i class="fa-solid fa-map-marker-alt mr-2"></i> вул. Велика Васильківська, 20, Київ</li>
+                    </ul>
                 </div>
             </div>
-            
-            <div class="border-t border-gray-700 mt-12 pt-8 text-center text-gray-400 text-sm">
-                &copy; 2025 ROZETKA. Усі права захищені.
-            </div>
+        </div>
+
+        <div class="bg-gray-800 text-gray-400 text-center py-6">
+            © 2025 Rozetka.ua — інтернет-магазин
         </div>
     </footer>
+
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const modal = document.getElementById('loginModal');
-            const openBtn = document.getElementById('openLoginModal');
-            const closeBtn = document.getElementById('closeLoginModal');
-    
-            openBtn.addEventListener('click', () => {
-                modal.classList.remove('hidden');
-            });
-    
-            closeBtn.addEventListener('click', () => {
-                modal.classList.add('hidden');
-            });
-    
-            window.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    modal.classList.add('hidden');
-                }
-            });
+        // Відкриття/закриття модального вікна входу
+        const openLoginModalBtn = document.getElementById('openLoginModal');
+        const loginModal = document.getElementById('loginModal');
+        const closeLoginModalBtn = document.getElementById('closeLoginModal');
+
+        openLoginModalBtn?.addEventListener('click', () => {
+            loginModal.classList.remove('hidden');
         });
+
+        closeLoginModalBtn?.addEventListener('click', () => {
+            loginModal.classList.add('hidden');
+        });
+
+        loginModal?.addEventListener('click', (e) => {
+            if (e.target === loginModal) {
+                loginModal.classList.add('hidden');
+            }
+        });
+        const openCartModalBtn = document.getElementById('openCartModal');
+const cartModal = document.getElementById('cartModal');
+const closeCartModalBtn = document.getElementById('closeCartModal');
+
+openCartModalBtn?.addEventListener('click', () => {
+    cartModal.classList.remove('hidden');
+});
+
+closeCartModalBtn?.addEventListener('click', () => {
+    cartModal.classList.add('hidden');
+});
+
+cartModal?.addEventListener('click', (e) => {
+    if (e.target === cartModal) {
+        cartModal.classList.add('hidden');
+    }
+});
+
     </script>
+
 </body>
 
 </html>
