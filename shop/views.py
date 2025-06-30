@@ -8,3 +8,9 @@ def home(request):
     return render(request, 'shop/home.html', {
         'promos': Promos,
         'products': products,})
+
+def sign_in_view(request):
+    products = Product.objects.all()
+
+    return render(request, 'shop/sign-in.html', {
+        'products': products})

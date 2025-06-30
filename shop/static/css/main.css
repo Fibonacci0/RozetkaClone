@@ -2,6 +2,11 @@
     font-family: 'vi-my-ha-hoa';
     src: url('../fonts/vi-my-ha-hoa.ttf') format("truetype");
 }
+body {
+    margin: 0;
+    padding: 0;
+    background-color: black; /* або той самий колір, що в шапки */
+  }
 
 .navbar-brand {
     font-family: 'vi-my-ha-hoa';
