@@ -13,7 +13,6 @@
     
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     
     <link rel="stylesheet" type='text/css' href="{% static 'css/main.css' %}">
     
@@ -71,9 +70,43 @@
             }
         });
     </script>
-</head>
+</head><!-- Модальне вікно входу -->
+<div id="loginModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
+  <div class="bg-white w-full max-w-md p-6 rounded-xl relative shadow-2xl">
+    <button id="closeLoginModal" class="absolute top-4 right-4 text-gray-400 hover:text-black text-2xl leading-none">
+      &times;
+    </button>
+    <h2 class="text-2xl font-bold text-center mb-6">Вхід</h2>
+    
+    <input type="tel" placeholder="+38 0" class="w-full border border-gray-300 rounded-lg p-3 mb-4 focus:outline-none focus:ring-2 focus:ring-green-600" />
+
+    <button class="bg-green-600 text-white w-full py-3 rounded-lg font-semibold text-lg hover:bg-green-700 transition mb-4">
+      Продовжити
+    </button>
+
+    <p class="text-sm text-gray-500 text-center mb-4">
+      Продовжуючи, ви підтверджуєте, що згодні увійти до облікового запису Rozetka та надати згоду на
+      <a href="#" class="text-blue-600 hover:underline">обробку персональних даних</a>
+    </p>
+
+    <div class="text-center text-gray-400 mb-4">або</div>
+
+    <button class="w-full py-3 border rounded-lg flex items-center justify-center hover:bg-gray-100 transition mb-2">
+      <img src="{% static 'images/google.png' %}" alt="Google" class="w-5 h-5 mr-3"> Продовжити через Google
+    </button>
+
+    <button class="w-full py-3 border rounded-lg flex items-center justify-center hover:bg-gray-100 transition">
+      <img src="{% static 'images/apple.png' %}" alt="Apple" class="w-5 h-5 mr-3"> Продовжити через Apple
+    </button>
+
+    <div class="text-center mt-4">
+      <a href="#" class="text-blue-600 hover:underline text-sm">Інші способи авторизації</a>
+    </div>
+  </div>
+</div>
 
 <body class="min-h-screen flex flex-col bg-gray-50">
+
     <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden lg:hidden"></div>
     
     <div id="sidebar" class="fixed left-0 top-0 h-full w-80 bg-white shadow-lg z-50 transform -translate-x-full transition-transform duration-300 ease-in-out lg:hidden">
@@ -187,9 +220,13 @@
                         <a href="#" class="block px-4 py-2 hover:bg-gray-100 transition-colors text-center">RU</a>
                     </div>
                 </div>
-                
+
+                <button id="openLoginModal" style="padding: 5px;">
+                    <img src="{% static 'images/free-icon-font-user.png' %}" alt="User Icon" width="25" height="25">
+                </button>
+
                 <a href="#" class="text-white hover:text-gray-300 transition-colors p-1">
-                    <i class="fa-solid fa-user text-xl"></i> </a>
+                    <i class="fa-solid fa-user text-xl"  ></i> </a>
                 
                 <a href="#" class="text-white hover:text-gray-300 transition-colors p-1 relative">
                     <i class="fa-solid fa-shopping-cart text-xl"></i> <span class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">3</span>
@@ -295,6 +332,27 @@
             </div>
         </div>
     </footer>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const modal = document.getElementById('loginModal');
+            const openBtn = document.getElementById('openLoginModal');
+            const closeBtn = document.getElementById('closeLoginModal');
+    
+            openBtn.addEventListener('click', () => {
+                modal.classList.remove('hidden');
+            });
+    
+            closeBtn.addEventListener('click', () => {
+                modal.classList.add('hidden');
+            });
+    
+            window.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.add('hidden');
+                }
+            });
+        });
+    </script>
 </body>
 
 </html>
