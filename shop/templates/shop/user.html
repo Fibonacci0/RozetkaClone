@@ -1,0 +1,15 @@
+{% extends "shop/_layout.html" %}
+
+{% block content %}
+  <div class="container">
+    <h2>Профіль користувача</h2>
+    <ul>
+      <li><strong>Ім'я користувача:</strong> {{ user.username }}</li>
+      <li><strong>Імейл:</strong> {{ user.email }}</li>
+      <li><strong>Ім'я:</strong> {{ user.first_name }}</li>
+      <li><strong>Прізвище:</strong> {{ user.last_name }}</li>
+      <li><strong>Дата приєднання:</strong> {{ user.date_joined|date:"d.m.Y H:i" }}</li>
+    </ul>
+    <a href="{% url 'logout' %}">Вийти</a>
+  </div>
+{% endblock %}

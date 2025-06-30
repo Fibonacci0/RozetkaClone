@@ -1,10 +1,18 @@
 from django.shortcuts import render
 from .models import Product, Promo  # ОБОВ’ЯЗКОВО
+#from django.contrib.auth.decorators import login_required
 
 def home(request):
     products = Product.objects.all()
-    Promos = Promo.objects.filter(display=True).order_by('-created_at')
+    promos = Promo.objects.filter(display=True).order_by('-created_at')
 
     return render(request, 'shop/home.html', {
-        'promos': Promos,
-        'products': products,})
+        'promos': promos,
+        'products': products,
+    })
+
+#@login_required
+def user_profile(request):
+    return render(request, 'shop/user.html', {
+        'user': request.user
+    })
