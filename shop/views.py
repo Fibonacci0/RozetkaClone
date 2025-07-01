@@ -11,8 +11,3 @@ def home(request):
         'products': products,
     })
 
-#@login_required
-def user_profile(request):
-    return render(request, 'shop/user.html', {
-        'user': request.user
-    })
