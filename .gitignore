@@ -291,4 +291,9 @@ fabric.properties
 .idea/**/azureSettings.xml
 
 # End of https://www.toptal.com/developers/gitignore/api/pycharm,django
-RozetkaClone/__pycache__/settings.cpython-312.pyc
+# RozetkaClone/__pycache__/settings.cpython-312.pyc
+# shop/__pycache__/models.cpython-312.pyc
+# shop/__pycache__/models.cpython-312.pyc
+# shop/__pycache__/models.cpython-312.pyc
+
+# shop/__pycache__/*
