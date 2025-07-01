@@ -1,0 +1,113 @@
+# Created by https://www.toptal.com/developers/gitignore/api/pycharm,django
+# Edit at https://www.toptal.com/developers/gitignore?templates=pycharm,django
+
+### Django ###
+*.log
+*.pot
+*.pyc
+__pycache__/
+local_settings.py
+
+# Кешовані байт-коди Python
+*.py[cod]
+*$py.class
+
+# Видалити якщо не експортуєш БД
+# db.sqlite3
+db.sqlite3-journal
+
+# Статичні та медіа (якщо не потрібно пушити)
+media/
+staticfiles/
+
+### Python virtual envs ###
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+### Тести ###
+.coverage
+.cache
+.tox/
+.nox/
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+htmlcov/
+
+### IDE ###
+.idea/
+*.iml
+
+### PyCharm ###
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+.idea/**/usage.statistics.xml
+.idea/**/dictionaries
+.idea/**/shelf
+.idea/**/aws.xml
+.idea/**/contentModel.xml
+.idea/**/dataSources/
+.idea/**/sonarlint/
+.idea/**/markdown-navigator/
+.idea/**/httpRequests
+
+### Packaging ###
+build/
+dist/
+*.egg-info/
+.eggs/
+MANIFEST
+*.egg
+.Python
+develop-eggs/
+downloads/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+
+### Byte-compiled ###
+__pypackages__/
+cython_debug/
+*.manifest
+*.spec
+
+### Jupyter ###
+.ipynb_checkpoints
+
+### PyBuilder ###
+.pybuilder/
+target/
+
+### Sphinx docs ###
+docs/_build/
+
+### Rope / Spyder ###
+.ropeproject/
+.spyderproject
+.spyproject
+
+### Misc tools ###
+.pdm.toml
+.mypy_cache/
+.dmypy.json
+.pyre/
+.pytype/
+
+### Others ###
+celerybeat-schedule
+celerybeat.pid
+*.mo
+
+# End of https://www.toptal.com/developers/gitignore/api/pycharm,django

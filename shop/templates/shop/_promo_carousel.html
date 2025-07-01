@@ -1,0 +1,434 @@
+<div id="promoCarousel" class="relative mb-5 mr-5 ml-5 rounded-lg overflow-hidden shadow-lg">
+    <div class="relative w-full overflow-hidden">
+        <!-- каруселька -->
+        <div class="carousel-slides flex transition-transform duration-700 ease-in-out">
+            {% for promo in promos %}
+            <div class="carousel-item min-w-full relative">
+                <img src="{{ promo.get_image }}" 
+                     class="block w-full h-64 sm:h-80 md:h-96 object-cover" 
+                     alt="Promotional image">
+            </div>
+            {% empty %}
+            <div class="carousel-item min-w-full relative">
+                <img src="https://via.placeholder.com/1200x400/E5E7EB/6B7280?text=No+Promos+Available" 
+                     class="block w-full h-64 sm:h-80 md:h-96 object-cover" 
+                     alt="No promos available">
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    <!-- Previous button -->
+    <button id="prevBtn" class="absolute top-1/2 left-2 sm:left-4 -translate-y-1/2 bg-black bg-opacity-40 hover:bg-opacity-70 text-white p-2 sm:p-3 rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 z-10 group">
+        <i class="fas fa-chevron-left text-sm sm:text-lg group-hover:scale-110 transition-transform"></i>
+        <span class="sr-only">Previous</span>
+    </button>
+
+    <!-- Next button -->
+    <button id="nextBtn" class="absolute top-1/2 right-2 sm:right-4 -translate-y-1/2 bg-black bg-opacity-40 hover:bg-opacity-70 text-white p-2 sm:p-3 rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 z-10 group">
+        <i class="fas fa-chevron-right text-sm sm:text-lg group-hover:scale-110 transition-transform"></i>
+        <span class="sr-only">Next</span>
+    </button>
+
+    <!-- Indicators -->
+    <div class="absolute bottom-2 sm:bottom-4 left-1/2 -translate-x-1/2 flex space-x-2 z-10">
+        {% for promo in promos %}
+        <button type="button" class="indicator w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-white bg-opacity-50 hover:bg-opacity-90 transition-all duration-300 {% if forloop.first %}active-indicator bg-opacity-90{% endif %}" data-slide="{{ forloop.counter0 }}"></button>
+        {% empty %}
+        <button type="button" class="indicator w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-white bg-opacity-90 active-indicator" data-slide="0"></button>
+        {% endfor %}
+    </div>
+
+</div>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    class ResponsiveCarousel {
+        constructor() {
+            this.currentSlide = 0;
+            this.totalSlides = document.querySelectorAll('.carousel-item').length;
+            this.slidesContainer = document.querySelector('.carousel-slides');
+            this.indicators = document.querySelectorAll('.indicator');
+            this.autoScrollInterval = null;
+            this.autoScrollDuration = 5000; // 5 seconds
+            this.isAutoScrollActive = true;            
+            this.init();
+        }
+
+        init() {
+            this.setupEventListeners();
+            this.startAutoScroll();
+            this.updateIndicators();
+        }
+
+        setupEventListeners() {
+            // Navigation buttons
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            
+            if (prevBtn) {
+                prevBtn.addEventListener('click', () => {
+                    this.prevSlide();
+                    this.resetAutoScroll();
+                });
+            }
+
+            if (nextBtn) {
+                nextBtn.addEventListener('click', () => {
+                    this.nextSlide();
+                    this.resetAutoScroll();
+                });
+            }
+
+            // Indicator buttons
+            this.indicators.forEach((indicator, index) => {
+                indicator.addEventListener('click', () => {
+                    this.goToSlide(index);
+                    this.resetAutoScroll();
+                });
+            });
+
+            // Auto-scroll toggle
+            const autoScrollToggle = document.getElementById('autoScrollToggle');
+            if (autoScrollToggle) {
+                autoScrollToggle.addEventListener('click', () => {
+                    this.toggleAutoScroll();
+                });
+            }
+
+            // Pause auto-scroll on hover
+            const carousel = document.getElementById('promoCarousel');
+            if (carousel) {
+                carousel.addEventListener('mouseenter', () => {
+                    if (this.isAutoScrollActive) {
+                        this.pauseAutoScroll();
+                    }
+                });
+
+                carousel.addEventListener('mouseleave', () => {
+                    if (this.isAutoScrollActive) {
+                        this.startAutoScroll();
+                    }
+                });
+
+                // Handle touch events for mobile swipe
+                let startX = 0;
+                let startY = 0;
+
+                carousel.addEventListener('touchstart', (e) => {
+                    startX = e.touches[0].clientX;
+                    startY = e.touches[0].clientY;
+                });
+
+                carousel.addEventListener('touchmove', (e) => {
+                    e.preventDefault();
+                });
+
+                carousel.addEventListener('touchend', (e) => {
+                    const endX = e.changedTouches[0].clientX;
+                    const endY = e.changedTouches[0].clientY;
+                    this.handleSwipe(startX, startY, endX, endY);
+                });
+            }
+        }
+
+        handleSwipe(startX, startY, endX, endY) {
+            const deltaX = endX - startX;
+            const deltaY = endY - startY;
+            const minSwipeDistance = 50;
+
+            if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > minSwipeDistance) {
+                if (deltaX > 0) {
+                    this.prevSlide();
+                } else {
+                    this.nextSlide();
+                }
+                this.resetAutoScroll();
+            }
+        }
+
+        goToSlide(slideIndex) {
+            this.currentSlide = slideIndex;
+            const translateX = -slideIndex * 100;
+            if (this.slidesContainer) {
+                this.slidesContainer.style.transform = `translateX(${translateX}%)`;
+            }
+            this.updateIndicators();
+        }
+
+        nextSlide() {
+            this.currentSlide = (this.currentSlide + 1) % this.totalSlides;
+            this.goToSlide(this.currentSlide);
+        }
+
+        prevSlide() {
+            this.currentSlide = this.currentSlide === 0 ? this.totalSlides - 1 : this.currentSlide - 1;
+            this.goToSlide(this.currentSlide);
+        }
+
+        updateIndicators() {
+            this.indicators.forEach((indicator, index) => {
+                if (index === this.currentSlide) {
+                    indicator.classList.add('active-indicator', 'bg-opacity-90');
+                    indicator.classList.remove('bg-opacity-50');
+                } else {
+                    indicator.classList.remove('active-indicator', 'bg-opacity-90');
+                    indicator.classList.add('bg-opacity-50');
+                }
+            });
+        }
+
+        startAutoScroll() {
+            if (!this.isAutoScrollActive) return;
+            
+            this.clearIntervals();
+            this.startProgressBar();
+            
+            this.autoScrollInterval = setInterval(() => {
+                this.nextSlide();
+                this.startProgressBar();
+            }, this.autoScrollDuration);
+        }
+
+        pauseAutoScroll() {
+            this.clearIntervals();
+        }
+
+        resetAutoScroll() {
+            if (this.isAutoScrollActive) {
+                this.startAutoScroll();
+            }
+        }
+
+        toggleAutoScroll() {
+            this.isAutoScrollActive = !this.isAutoScrollActive;
+            const icon = document.getElementById('autoScrollIcon');
+            
+            if (this.isAutoScrollActive) {
+                if (icon) icon.className = 'fas fa-pause text-xs sm:text-sm';
+                this.startAutoScroll();
+            } else {
+                if (icon) icon.className = 'fas fa-play text-xs sm:text-sm';
+                this.clearIntervals();
+            }
+        }
+        clearIntervals() {
+            if (this.autoScrollInterval) {
+                clearInterval(this.autoScrollInterval);
+                this.autoScrollInterval = null;
+            }
+            if (this.progressBar) {
+                this.progressBar.style.width = '0%';
+            }
+        }
+    }
+    new ResponsiveCarousel();
+});
+</script>
+    <button id="prevBtn" class="absolute top-1/2 left-2 sm:left-4 -translate-y-1/2 bg-black bg-opacity-40 hover:bg-opacity-70 text-white p-2 sm:p-3 rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 z-10 group">
+        <i class="fas fa-chevron-left text-sm sm:text-lg group-hover:scale-110 transition-transform"></i>
+        <span class="sr-only">Previous</span>
+    </button>
+
+    <!-- Next button -->
+    <button id="nextBtn" class="absolute top-1/2 right-2 sm:right-4 -translate-y-1/2 bg-black bg-opacity-40 hover:bg-opacity-70 text-white p-2 sm:p-3 rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 z-10 group">
+        <i class="fas fa-chevron-right text-sm sm:text-lg group-hover:scale-110 transition-transform"></i>
+        <span class="sr-only">Next</span>
+    </button>
+
+    <!-- Indicators -->
+    <div class="absolute bottom-2 sm:bottom-4 left-1/2 -translate-x-1/2 flex space-x-2 z-10">
+        {% for promo in promos %}
+        <button type="button" class="indicator w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-white bg-opacity-50 hover:bg-opacity-90 transition-all duration-300 {% if forloop.first %}active-indicator bg-opacity-90{% endif %}" data-slide="{{ forloop.counter0 }}"></button>
+        {% empty %}
+        <button type="button" class="indicator w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-white bg-opacity-90 active-indicator" data-slide="0"></button>
+        {% endfor %}
+    </div>
+
+</div>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    class ResponsiveCarousel {
+        constructor() {
+            this.currentSlide = 0;
+            this.totalSlides = document.querySelectorAll('.carousel-item').length;
+            this.slidesContainer = document.querySelector('.carousel-slides');
+            this.indicators = document.querySelectorAll('.indicator');
+            this.autoScrollInterval = null;
+            this.autoScrollDuration = 5000; // 5 seconds
+            this.isAutoScrollActive = true;            
+            this.init();
+        }
+
+        init() {
+            this.setupEventListeners();
+            this.startAutoScroll();
+            this.updateIndicators();
+        }
+
+        setupEventListeners() {
+            // Navigation buttons
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            
+            if (prevBtn) {
+                prevBtn.addEventListener('click', () => {
+                    this.prevSlide();
+                    this.resetAutoScroll();
+                });
+            }
+
+            if (nextBtn) {
+                nextBtn.addEventListener('click', () => {
+                    this.nextSlide();
+                    this.resetAutoScroll();
+                });
+            }
+
+            // Indicator buttons
+            this.indicators.forEach((indicator, index) => {
+                indicator.addEventListener('click', () => {
+                    this.goToSlide(index);
+                    this.resetAutoScroll();
+                });
+            });
+
+            // Auto-scroll toggle
+            const autoScrollToggle = document.getElementById('autoScrollToggle');
+            if (autoScrollToggle) {
+                autoScrollToggle.addEventListener('click', () => {
+                    this.toggleAutoScroll();
+                });
+            }
+
+            // Pause auto-scroll on hover
+            const carousel = document.getElementById('promoCarousel');
+            if (carousel) {
+                carousel.addEventListener('mouseenter', () => {
+                    if (this.isAutoScrollActive) {
+                        this.pauseAutoScroll();
+                    }
+                });
+
+                carousel.addEventListener('mouseleave', () => {
+                    if (this.isAutoScrollActive) {
+                        this.startAutoScroll();
+                    }
+                });
+
+                // Handle touch events for mobile swipe
+                let startX = 0;
+                let startY = 0;
+
+                carousel.addEventListener('touchstart', (e) => {
+                    startX = e.touches[0].clientX;
+                    startY = e.touches[0].clientY;
+                });
+
+                carousel.addEventListener('touchmove', (e) => {
+                    e.preventDefault();
+                });
+
+                carousel.addEventListener('touchend', (e) => {
+                    const endX = e.changedTouches[0].clientX;
+                    const endY = e.changedTouches[0].clientY;
+                    this.handleSwipe(startX, startY, endX, endY);
+                });
+            }
+        }
+
+        handleSwipe(startX, startY, endX, endY) {
+            const deltaX = endX - startX;
+            const deltaY = endY - startY;
+            const minSwipeDistance = 50;
+
+            if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > minSwipeDistance) {
+                if (deltaX > 0) {
+                    this.prevSlide();
+                } else {
+                    this.nextSlide();
+                }
+                this.resetAutoScroll();
+            }
+        }
+
+        goToSlide(slideIndex) {
+            this.currentSlide = slideIndex;
+            const translateX = -slideIndex * 100;
+            if (this.slidesContainer) {
+                this.slidesContainer.style.transform = `translateX(${translateX}%)`;
+            }
+            this.updateIndicators();
+        }
+
+        nextSlide() {
+            this.currentSlide = (this.currentSlide + 1) % this.totalSlides;
+            this.goToSlide(this.currentSlide);
+        }
+
+        prevSlide() {
+            this.currentSlide = this.currentSlide === 0 ? this.totalSlides - 1 : this.currentSlide - 1;
+            this.goToSlide(this.currentSlide);
+        }
+
+        updateIndicators() {
+            this.indicators.forEach((indicator, index) => {
+                if (index === this.currentSlide) {
+                    indicator.classList.add('active-indicator', 'bg-opacity-90');
+                    indicator.classList.remove('bg-opacity-50');
+                } else {
+                    indicator.classList.remove('active-indicator', 'bg-opacity-90');
+                    indicator.classList.add('bg-opacity-50');
+                }
+            });
+        }
+
+        startAutoScroll() {
+            if (!this.isAutoScrollActive) return;
+            
+            this.clearIntervals();
+            this.startProgressBar();
+            
+            this.autoScrollInterval = setInterval(() => {
+                this.nextSlide();
+                this.startProgressBar();
+            }, this.autoScrollDuration);
+        }
+
+        pauseAutoScroll() {
+            this.clearIntervals();
+        }
+
+        resetAutoScroll() {
+            if (this.isAutoScrollActive) {
+                this.startAutoScroll();
+            }
+        }
+
+        toggleAutoScroll() {
+            this.isAutoScrollActive = !this.isAutoScrollActive;
+            const icon = document.getElementById('autoScrollIcon');
+            
+            if (this.isAutoScrollActive) {
+                if (icon) icon.className = 'fas fa-pause text-xs sm:text-sm';
+                this.startAutoScroll();
+            } else {
+                if (icon) icon.className = 'fas fa-play text-xs sm:text-sm';
+                this.clearIntervals();
+            }
+        }
+        clearIntervals() {
+            if (this.autoScrollInterval) {
+                clearInterval(this.autoScrollInterval);
+                this.autoScrollInterval = null;
+            }
+            if (this.progressBar) {
+                this.progressBar.style.width = '0%';
+            }
+        }
+    }
+    new ResponsiveCarousel();
+});
+</script>
