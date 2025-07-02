@@ -168,19 +168,18 @@
             </nav>
         </div>
     </div>
-
+    
     <header class="bg-black py-3 shadow-lg relative z-30">
         <div class="container mx-auto px-4 flex items-center justify-between">
             <button onclick="toggleSidebar()" class="lg:hidden text-white focus:outline-none hover:text-gray-300 transition-colors">
                 <i class="fa-solid fa-bars text-xl"></i>
             </button>
-
+            
             <div class="flex items-center space-x-3">
                 <a href="{% url 'home' %}" class="flex items-center space-x-3">
                     <img src="https://content2.rozetka.com.ua/mb_logo/image_site_light_theme/original/555588630.svg" alt="Logo" class="h-10 w-auto" />
                 </a>
             </div>
-
             <nav class="hidden lg:flex flex-grow items-center space-x-6 ml-8">
                 <div class="relative">
                     <button id="catalog-button" class="bg-gray-800 text-white px-5 py-2.5 rounded-lg flex items-center space-x-2 hover:bg-gray-700 focus:outline-none transition-colors">
@@ -225,13 +224,16 @@
                     </div>
                 </div>
 
-                <button id="openLoginModal" style="padding: 5px;">
+                <button id="openLoginModal" style="padding: 5px;" class="img1">
                     <img src="{% static 'images/free-icon-font-user.png' %}" alt="User Icon" width="25" height="25" />
                 </button>
 
-                <button id="open-cart-modal" style="padding: 5px;">
+                <button id="open-cart-modal" style="padding: 5px;" class="img1">
                     <img src="{% static 'images/free-icon-font-shopping-cart.png' %}" alt="Cart Icon" width="25" height="25" />
                 </button>
+                            
+                <a href="{% url 'admin:index' %}" class="img1"><img src="../../static/images/admin.png" alt="" width="25" height="25"></a>
+
             </div>
 
                 

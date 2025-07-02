@@ -28,3 +28,14 @@
     --bs-navbar-hover-color: #000000;
     --bs-navbar-active-color: #000000;
 }
+.img1 {
+    transition: filter 0.3s ease, background-color 0.3s ease;
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+}
+
+.img1:hover {
+    background-color: rgb(0, 255, 0); /* світло-зелене тло при наведенні */
+    filter: brightness(1.2) saturate(1.5); /* зробити іконку яскравішою */
+}
