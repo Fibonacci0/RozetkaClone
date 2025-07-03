@@ -1,0 +1,39 @@
+{% extends "shop/_layout.html" %}
+
+{% block content %}
+<div class="flex justify-center items-center min-h-screen bg-gray-100">
+  <div class="w-full max-w-md bg-white border border-gray-200 shadow-md rounded-2xl p-8">
+    
+    <h2 class="text-3xl font-bold text-gray-800 text-center mb-6">
+      Реєстрація
+    </h2>
+
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            {% for field in form %}
+                <div>
+                    <label class="block text-gray-700 font-medium mb-1" for="{{ field.id_for_label }}">
+                        {{ field.label }}
+                    </label>
+                    {{ field }}
+                    {% if field.errors %}
+                        <p class="text-sm text-red-500 mt-1">{{ field.errors|striptags }}</p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+
+            <button type="submit"
+                class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-150">
+                Зареєструватися
+            </button>
+        </form>
+
+    <div class="mt-6 text-center text-sm text-gray-600">
+      Вже маєте обліковий запис?
+      <a href="{% url 'login' %}" class="text-[#00a046] hover:underline font-medium">
+        Увійти
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}
