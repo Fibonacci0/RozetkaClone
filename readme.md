@@ -1,12 +1,13 @@
 
-
 python -m venv .venv
 
-./.venv/Scripts/activate.ps1
+./.venv/Scripts/activate
 
-pip install Pillow
+pip install django
+pip install pillow
 
-python manage.py runmigrations
+python manage.py makemigrations
+
 python manage.py migrate
 
-python manage runserver
+python manage.py runserver
