@@ -1,0 +1,10 @@
+{% extends "shop/_layout.html" %}
+{% block content %}
+<h2>{{ product.name }}</h2>
+<img src="{{ product.get_image }}" alt="{{ product.name }}" style="max-width:300px;">
+<p><strong>Price:</strong> ${{ product.price }}</p>
+<p><strong>Category:</strong> {{ product.category }}</p>
+<p><strong>Description:</strong> {{ product.description }}</p>
+<p><strong>Rating:</strong> {{ product.rating }} ({{ product.review_count }} reviews)</p>
+<a href="{% url 'home' %}">Back to Home</a>
+{% endblock %}
