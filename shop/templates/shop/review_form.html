@@ -2,7 +2,7 @@
 <html lang="uk">
 <head>
   <meta charset="UTF-8" />
-  <title>Додати відгук</title>
+  <title>{% if is_edit %}Редагувати відгук{% else %}Додати відгук{% endif %}</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -65,12 +65,15 @@
 </head>
 <body>
 
-<h1>Додати відгук</h1>
+<h1>{% if is_edit %}Редагувати відгук{% else %}Додати відгук{% endif %}</h1>
+{% if product %}
+  <h2>Продукт: {{ product.name }}</h2>
+{% endif %}
 
 <form method="post">
   {% csrf_token %}
   {{ form.as_p }}
-  <button type="submit">Відправити</button>
+  <button type="submit">{% if is_edit %}Оновити{% else %}Відправити{% endif %}</button>
 </form>
 
 </body>

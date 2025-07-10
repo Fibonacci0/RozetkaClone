@@ -6,7 +6,9 @@ from django.contrib.auth.models import User
 from django.contrib import messages
 from .models import Category, Product, Promo, Review  # ОБОВ’ЯЗКОВО
 
-from .forms import ProfileEditForm, LoginForm, UserRegisterForm, ReviewForm  # Імпортуємо форму для редагування профілю
+from .forms import ProfileEditForm, UserRegisterForm, ReviewForm
+# from .forms import LoginForm
+from django.contrib.auth.forms import AuthenticationForm as LoginForm
 
 def home(request):
     products = Product.objects.all()
@@ -76,32 +78,60 @@ def profile_edit_view(request):
 def product_detail(request, product_id):
     from django.shortcuts import get_object_or_404
     product = get_object_or_404(Product, id=product_id)
-    return render(request, 'shop/product_detail.html', {'product': product})
+
+    reviews = product.reviews.select_related('user').order_by('-created_at')
+    user_review_exists = False
+    
+    if request.user.is_authenticated:
+        user_review = reviews.filter(user=request.user).first()
+        other_reviews = reviews.exclude(user=request.user)
+        if user_review:
+            reviews = [user_review] + list(other_reviews)
+            user_review_exists = True
+
+
+    return render(request, 'shop/product_detail.html', {
+        'product': product,
+        'reviews': reviews,
+        'user_review_exists': user_review_exists
+    })
 
 
 @login_required
-def create_review(request, product_id):
-    product = get_object_or_404(Product, id=product_id)
+def review_form(request, product_id=None, review_id=None):
+    if review_id:
+        review = get_object_or_404(Review, id=review_id, user=request.user)
+        product = get_object_or_404(Product, id=review.product.id)
+        is_edit = True
+    else:
+        review = None
+        product = get_object_or_404(Product, id=product_id)
+        is_edit = False
 
     if request.method == 'POST':
-        form = ReviewForm(request.POST)
-
+        form = ReviewForm(request.POST, instance=review)
         if form.is_valid():
             review = form.save(commit=False)
             review.user = request.user
             review.product = product
             review.save()
-            return redirect('reviews_list')
+            return redirect('product_detail', product_id=product.id)
     else:
-        form = ReviewForm()
-    return render(request, 'shop/create_review.html', {'form': form})
+        form = ReviewForm(instance=review)
+
+    return render(request, 'shop/review_form.html', {
+        'form': form,
+        'product': product,
+        'is_edit': is_edit
+        })
 
 
-def reviews_list(request):
-    reviews = Review.objects.all().order_by('-created_at')
-    
-    products = Product.objects.all()
+@login_required
+def delete_review(request, review_id):
+    review = get_object_or_404(Review, id=review_id, user=request.user)
+    product_id = review.product.id
 
-    return render(request, 'shop/reviews_list.html', {'reviews': reviews, 'products': products})
-
+    if request.method == 'POST':
+        review.delete()
+    return redirect('product_detail', product_id=product_id)
 

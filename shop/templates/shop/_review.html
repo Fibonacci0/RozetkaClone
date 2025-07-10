@@ -42,6 +42,22 @@
         <p><em>Недоліки:</em> {{ review.disadvantages }}</p>
         {% endif %}
         
+        {% if review.updated_at %}
+        <p><em>Оновлено:</em> {{ review.updated_at }}</p>
+        {% endif %}
+
         <small>Дата: {{ review.created_at|date:"d M Y H:i" }}</small>
+
+        {% if review.user == request.user %}
+        <a href="{% url 'edit_review' review.id %}">Редагувати</a> |
+        <form action="{% url 'delete_review' review.id %}" method="post" style="display:inline;">
+          {% csrf_token %}
+          <button type="submit" onclick="return confirm('Ви впевнені, що хочете видалити відгук?');" style="background:none; border:none; color:#007bff; cursor:pointer; padding:0; font: inherit;">
+            Видалити
+          </button>
+        </form>
+        {% endif %}
+        
+
     </div>
     

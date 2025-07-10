@@ -7,4 +7,20 @@
 <p><strong>Description:</strong> {{ product.description }}</p>
 <p><strong>Rating:</strong> {{ product.rating }} ({{ product.review_count }} reviews)</p>
 <a href="{% url 'home' %}">Back to Home</a>
+
+<h1>Всі відгуки</h1>
+
+{% if user.is_authenticated and user_review_exists %}
+<button class="btn btn-secondary" disabled>Ви вже залишили відгук</button>
+{% else %}
+<a href="{% url 'create_review' product.id %}" class="btn btn-primary">Додати відгук</a>
+{% endif %}
+
+
+{% for review in reviews %}
+  {% include 'shop/_review.html' %}
+{% empty %}
+  <p>Відгуків немає.</p>
+{% endfor %}
+
 {% endblock %}
