@@ -7,8 +7,7 @@ from django.contrib import messages
 from .models import Category, Product, Promo, Review  # ОБОВ’ЯЗКОВО
 
 from .forms import ProfileEditForm, UserRegisterForm, ReviewForm
-# from .forms import LoginForm
-from django.contrib.auth.forms import AuthenticationForm as LoginForm
+from .forms import LoginForm
 
 def home(request):
     products = Product.objects.all()
