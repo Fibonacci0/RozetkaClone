@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from .models import Review
 
 class ProfileEditForm(forms.ModelForm):
     first_name = forms.CharField(
@@ -57,3 +58,9 @@ class UserRegisterForm(UserCreationForm):
             field.widget.attrs.update({
                 'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500'
             })
+
+class ReviewForm(forms.ModelForm):
+    class Meta:
+        model = Review
+        exclude = ['user', 'product']
+        fields = ['rating', 'comment', 'advantages', 'disadvantages']
