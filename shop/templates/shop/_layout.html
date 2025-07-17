@@ -181,6 +181,7 @@
                     alt="Logo" class="h-10 w-auto" />
             </a>
 
+            
             <nav class="hidden lg:flex flex-grow items-center space-x-6 ml-8">
                 <div class="relative group">
                     <!-- Catalog button -->
@@ -210,12 +211,13 @@
                 </div>
 
 
-                <div class="flex-grow flex items-center bg-white rounded-lg overflow-hidden max-w-2xl shadow-sm">
-                    <input type="text" placeholder="Що шукаєте сьогодні?"
-                        class="py-3 px-4 flex-grow focus:outline-none text-gray-800 placeholder-gray-500" />
-                    <button
-                        class="bg-green-600 text-white px-6 py-3 hover:bg-green-700 focus:outline-none transition-colors font-medium">Знайти</button>
-                </div>
+                <form action="{% url 'search_products' %}" method="get" class="flex-grow flex items-center bg-white rounded-lg overflow-hidden max-w-2xl shadow-sm">
+                    <input type="text" name="q" placeholder="Що шукаєте сьогодні?" class="py-3 px-4 flex-grow focus:outline-none text-gray-800 placeholder-gray-500" />
+                    <button type="submit" class="bg-green-600 text-white px-6 py-3 hover:bg-green-700 focus:outline-none transition-colors font-medium">
+                        Знайти
+                    </button>
+                </form>
+
             </nav>
 
             <div class="flex items-center space-x-4 ml-auto lg:ml-0">
