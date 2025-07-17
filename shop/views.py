@@ -37,10 +37,10 @@ def register(request):
 
 def user_login(request):
     if request.user.is_authenticated:
-        return redirect('profile')  # already logged in
+        return redirect('profile') 
 
     if request.method == 'POST':
-        form = LoginForm(request, data=request.POST)
+        form = LoginForm(request=request, data=request.POST) 
         if form.is_valid():
             user = form.get_user()
             login(request, user)
