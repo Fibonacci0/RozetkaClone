@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.models import User
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 
 class ProfileEditForm(forms.ModelForm):
     first_name = forms.CharField(
@@ -32,7 +32,7 @@ class ProfileEditForm(forms.ModelForm):
         model = User
         fields = ['first_name', 'last_name', 'email']
 
-class LoginForm(forms.Form):
+class LoginForm(AuthenticationForm):
     username = forms.CharField(
         label='Ім’я користувача',
         widget=forms.TextInput(attrs={
