@@ -1,6 +1,5 @@
 from django.db import models
 from django.utils import timezone
-from django.contrib.auth.models import User
 
 class Product(models.Model):
     name = models.CharField(max_length=255)
@@ -32,21 +31,6 @@ class Product(models.Model):
     def __str__(self):
         return self.name
 
-class Review(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='reviews')
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    rating = models.PositiveSmallIntegerField(choices=[(i, i) for i in range(1, 6)])
-    text = models.TextField(blank=True)
-    created_at = models.DateTimeField(default=timezone.now)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        unique_together = ('product', 'user')
-        ordering = ['-created_at']
-
-    def __str__(self):
-        return f"Review by {self.user.username} for {self.product.name} ({self.rating}★)"
-
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
     slug = models.SlugField(unique=True)
@@ -54,11 +38,6 @@ class Category(models.Model):
     class Meta:
         verbose_name_plural = "Categories"
     
-    def categories_context(request):
-        return {
-            'categories': Category.objects.all()
-        }
-
     def __str__(self):
         return self.name
 
