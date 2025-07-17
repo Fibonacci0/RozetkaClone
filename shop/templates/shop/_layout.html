@@ -12,11 +12,6 @@
     {% block opengraph %}{% endblock %}
 
     <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- хто видалив тут font-awesome, я через вас 2 години потратив в пустоту бо не міг зрозуміти чого іконок немає-->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
-        integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
-
     <link rel="stylesheet" type="text/css" href="{% static 'css/main.css' %}" />
 
     <script>
@@ -74,184 +69,174 @@
     </script>
 </head>
 
+<div id="cartModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
+    <div class="bg-white w-full max-w-xl max-h-[80vh] p-6 rounded-xl relative shadow-2xl flex flex-col text-left overflow-y-auto">
+        <button id="closeCartModal" class="absolute top-4 right-4 text-gray-400 hover:text-black text-2xl leading-none">&times;</button>
+        <h2 class="text-2xl font-bold mb-4 text-center">Корзина</h2>
+
+        <div id="cartItemsContainer" class="space-y-4">
+            <!-- Товари зʼявлятимуться тут -->
+        </div>
+
+        <div id="emptyCartMessage" class="text-center text-gray-500 mt-6">
+            <img src="{% static 'images/modal-cart-dummy.svg' %}" alt="Cart Icon" class="mx-auto mb-4 w-32 h-32 object-contain" />
+            <p class="text-lg">Кошик порожній</p>
+            <span class="text-sm">Але це ніколи не пізно виправити</span>
+        </div>
+    </div>
+</div>
+
 <body class="min-h-screen flex flex-col bg-gray-50">
-    <!-- Cart Modal -->
-    <div id="cartModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
-        <div
-            class="bg-white w-full max-w-xl max-h-[80vh] p-6 rounded-xl relative shadow-2xl flex flex-col text-left overflow-y-auto">
-            <button id="closeCartModal"
-                class="absolute top-4 right-4 text-gray-400 hover:text-black text-2xl leading-none">&times;</button>
-            <h2 class="text-2xl font-bold mb-4 text-center">Корзина</h2>
+    
+    <!-- Login Modal -->
+    <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
+        <div class="bg-white w-full max-w-md p-6 rounded-xl relative shadow-2xl">
+            <button id="closeLoginModal" class="absolute top-4 right-4 text-gray-400 hover:text-black text-2xl leading-none">&times;</button>
+            <h2 class="text-2xl font-bold text-center mb-6">Вхід</h2>
+            <input type="tel" placeholder="+38 0" class="w-full border border-gray-300 rounded-lg p-3 mb-4 focus:outline-none focus:ring-2 focus:ring-green-600" />
+            <button class="bg-green-600 text-white w-full py-3 rounded-lg font-semibold text-lg hover:bg-green-700 transition mb-4">Продовжити</button>
+            <p class="text-sm text-gray-500 text-center mb-4">
+                Продовжуючи, ви підтверджуєте, що згодні увійти до облікового запису Rozetka та надати згоду на
+                <a href="#" class="text-blue-600 hover:underline">обробку персональних даних</a>
+            </p>
+            <div class="text-center text-gray-400 mb-4">або</div>
 
-            <div id="cartItemsContainer" class="space-y-4">
-                <!-- Товари зʼявлятимуться тут -->
-            </div>
+            <a href="{% url 'home'%}">
+                <button class="w-full py-3 border rounded-lg flex items-center justify-center hover:bg-gray-100 transition mb-2">
+                    <img src="{% static 'images/google.png' %}" alt="Google" class="w-5 h-5 mr-3" />
+                    Продовжити через Google
+                </button>
+            </a>
+            
 
-            <div id="emptyCartMessage" class="text-center text-gray-500 mt-6">
-                <img src="{% static 'images/modal-cart-dummy.svg' %}" alt="Cart Icon"
-                    class="mx-auto mb-4 w-32 h-32 object-contain" />
-                <p class="text-lg">Кошик порожній</p>
-                <span class="text-sm">Але це ніколи не пізно виправити</span>
+            <button class="w-full py-3 border rounded-lg flex items-center justify-center hover:bg-gray-100 transition">
+                <img src="{% static 'images/apple.png' %}" alt="Apple" class="w-5 h-5 mr-3" /> Продовжити через Apple
+            </button>
+            <div class="text-center mt-4">
+                <a href="#" class="text-blue-600 hover:underline text-sm">Інші способи авторизації</a>
             </div>
         </div>
     </div>
+      
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden lg:hidden"></div>
 
-    <!-- Sidebar Backdrop -->
-    <div id="sidebarBackdrop" class="fixed inset-0 bg-black bg-opacity-40 z-40 hidden" onclick="toggleSidebar()"></div>
-
-
-
-    <!-- Sidebar -->
-    <div id="sidebar"
-        class="fixed top-0 left-0 h-full w-[300px] bg-white shadow-lg transform -translate-x-full transition-transform duration-300 z-50">
-
-        <!-- Top of sidebar -->
-        <div class="flex justify-between items-center p-4 border-b">
-            <img src="https://content2.rozetka.com.ua/mb_logo/image_site_light_theme/original/555588630.svg" class="h-8"
-                alt="Logo">
-            <button onclick="toggleSidebar()" class="text-gray-600 hover:text-black">
-                <i class="fas fa-times text-2xl"></i>
-            </button>
-        </div>
-
-        <!-- Auth Prompt -->
+    <div id="sidebar" class="fixed left-0 top-0 h-full w-80 bg-white shadow-lg z-50 transform -translate-x-full transition-transform duration-300 ease-in-out lg:hidden">
         <div class="p-4">
-            {% if user.is_authenticated %}
-            <a href="{% url 'profile' %}"
-                class="block w-full text-center bg-green-500 hover:bg-green-600 text-white font-bold py-2 rounded">
-                Мій кабінет
-            </a>
-            {% else %}
-            <a href="{% url 'login' %}"
-                class="block w-full text-center bg-green-600 hover:bg-green-700 text-white font-bold py-2 rounded">
-                Увійти в особистий кабінет
-            </a>
-            {% endif %}
+            <div class="flex items-center justify-between mb-6">
+                <a href="{% url 'home' %}" class="flex items-center">
+                    <img src="https://content2.rozetka.com.ua/mb_logo/image_site_light_theme/original/555588630.svg" alt="Logo" class="h-8 w-auto" />
+                    <span class="text-xl font-bold ml-2">rozetka</span>
+                </a>
+                <button onclick="closeSidebar()" class="text-gray-500 hover:text-gray-700 focus:outline-none">
+                    <i class="fa-solid fa-times text-2xl"></i>
+                </button>
+            </div>
+
+            <div class="mb-6">
+                <div class="flex items-center bg-gray-100 rounded-lg overflow-hidden">
+                    <input type="text" placeholder="Я шукаю..." class="py-3 px-4 flex-grow focus:outline-none text-gray-800 bg-transparent" />
+                    <button class="bg-green-600 text-white px-4 py-3 hover:bg-green-700 focus:outline-none">
+                        <i class="fa-solid fa-search text-xl"></i>
+                    </button>
+                </div>
+            </div>
+
+            <nav class="space-y-2">
+                <div class="mb-4">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-3">Каталог</h3>
+                    <div class="space-y-1">
+                        <a href="#" class="block px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">Електроніка</a>
+                        <a href="#" class="block px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">Одяг та взуття</a>
+                        <a href="#" class="block px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">Дім та сад</a>
+                        <a href="#" class="block px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">Спорт та відпочинок</a>
+                        <a href="#" class="block px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">Краса та здоров'я</a>
+                        <a href="#" class="block px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">Автомобілі</a>
+                    </div>
+                </div>
+
+                <div class="border-t pt-4">
+                    <a href="#" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
+                        <i class="fa-solid fa-user-circle w-5 h-5 mr-3"></i> Мій профіль
+                    </a>
+                    <a href="#" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
+                        <i class="fa-solid fa-heart w-5 h-5 mr-3"></i> Список бажань
+                    </a>
+                    <a href="#" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
+                        <i class="fa-solid fa-history w-5 h-5 mr-3"></i> Історія замовлень
+                    </a>
+                </div>
+            </nav>
         </div>
-
-        <!-- Navigation Links -->
-        <nav class="px-4 space-y-3 text-gray-800">
-            <a class="flex items-center space-x-2 hover:text-green-600">
-                <i class="fas fa-shopping-cart w-5 text-center"></i>
-                <span>Кошик</span>
-            </a>
-            <a href="#" class="flex items-center space-x-2 hover:text-green-600">
-                <i class="fas fa-random w-5 text-center"></i>
-                <span>Списки порівнянь</span>
-            </a>
-            <a href="#" class="flex items-center space-x-2 hover:text-green-600">
-                <i class="fas fa-box-open w-5 text-center"></i>
-                <span>Відстежити посилку</span>
-            </a>
-            <a href="#" class="flex items-center space-x-2 hover:text-green-600">
-                <i class="fas fa-map-marker-alt w-5 text-center"></i>
-                <span>Київ, Київ обл.</span>
-            </a>
-            <a href="#" class="flex items-center space-x-2 hover:text-green-600">
-                <i class="fas fa-store w-5 text-center"></i>
-                <span>Магазини Rozetka</span>
-            </a>
-        </nav>
-
-        <!-- Divider -->
-        <hr class="my-4">
-
-        <!-- Company Info -->
-        <nav class="px-4 space-y-2 text-sm text-gray-700">
-            <span class="text-gray-500 font-bold">Інформація про компанію</span>
-            <a href="#" class="block hover:text-green-600">Про нас</a>
-            <a href="#" class="block hover:text-green-600">Умови використання</a>
-            <a href="#" class="block hover:text-green-600">Вакансії</a>
-            <a href="#" class="block hover:text-green-600">Контакти</a>
-            <a href="#" class="block hover:text-green-600">Всі категорії</a>
-        </nav>
     </div>
 
     <header class="bg-black py-3 shadow-lg relative z-30">
-        <div class="container mx-auto px-4 py-3 flex items-center justify-between">
-            <!-- Burger button (left) -->
-            <button onclick="toggleSidebar()"
-                class="text-white focus:outline-none hover:text-gray-300 transition-colors mr-4 ml-4">
-                <i class="fas fa-bars text-2xl"></i>
+        <div class="container mx-auto px-4 flex items-center justify-between">
+            <button onclick="toggleSidebar()" class="lg:hidden text-white focus:outline-none hover:text-gray-300 transition-colors">
+                <i class="fa-solid fa-bars text-xl"></i>
             </button>
 
-            <!-- Logo (right) -->
-            <a href="{% url 'home' %}" class="flex items-center space-x-2">
-                <img src="https://content2.rozetka.com.ua/mb_logo/image_site_light_theme/original/555588630.svg"
-                    alt="Logo" class="h-10 w-auto" />
-            </a>
+            <div class="flex items-center space-x-3">
+                <a href="{% url 'home' %}" class="flex items-center space-x-3">
+                    <img src="https://content2.rozetka.com.ua/mb_logo/image_site_light_theme/original/555588630.svg" alt="Logo" class="h-10 w-auto" />
+                </a>
+            </div>
 
             <nav class="hidden lg:flex flex-grow items-center space-x-6 ml-8">
-                <div class="relative group">
-                    <!-- Catalog button -->
-                    <button id="catalog-button"
-                        class="bg-green-600 text-white px-5 py-2.5 rounded-lg flex items-center space-x-2 hover:bg-green-700 focus:outline-none transition-all">
-                        <i class="fa-solid fa-th-large text-lg"></i>
-                        <span class="font-medium">Каталог товарів</span>
+                <div class="relative">
+                    <button id="catalog-button" class="bg-gray-800 text-white px-5 py-2.5 rounded-lg flex items-center space-x-2 hover:bg-gray-700 focus:outline-none transition-colors">
+                        <i class="fa-solid fa-th-list text-lg"></i> <span class="font-medium">Каталог</span>
                     </button>
-
-                    <!-- Dropdown menu -->
-                    <div id="catalog-dropdown"
-                        class="absolute left-0 mt-2 w-72 bg-white rounded-lg shadow-xl border border-gray-200 z-50 hidden group-hover:block">
+                    <div id="catalog-dropdown" class="absolute hidden bg-white text-gray-800 rounded-lg shadow-xl mt-2 w-64 z-20 border">
                         <div class="py-2">
-            {% for category in categories %}
-                <a href="#"
-                   class="block px-5 py-3 text-lg font-semibold text-gray-800 hover:text-[#00a046] hover:bg-gray-50 transition">
-                    {{ category.name }}
-                </a>
-            {% endfor %}
-
-                            <a href="{% url 'all_categories' %}"
-                                class="block px-5 py-3 text-green-600 hover:bg-gray-50 transition-colors">
-                                <div class="font-semibold">Переглянути всі категорії →</div>
+                            <a href="#" class="block px-4 py-3 hover:bg-gray-100 transition-colors border-b border-gray-100 last:border-b-0">
+                                <div class="font-medium">Електроніка</div>
+                                <div class="text-sm text-gray-500">Телефони, ноутбуки, техніка</div>
+                            </a>
+                            <a href="#" class="block px-4 py-3 hover:bg-gray-100 transition-colors border-b border-gray-100 last:border-b-0">
+                                <div class="font-medium">Одяг та взуття</div>
+                                <div class="text-sm text-gray-500">Мода для всієї родини</div>
+                            </a>
+                            <a href="#" class="block px-4 py-3 hover:bg-gray-100 transition-colors border-b border-gray-100 last:border-b-0">
+                                <div class="font-medium">Дім та сад</div>
+                                <div class="text-sm text-gray-500">Меблі, декор, інструменти</div>
+                            </a>
+                            <a href="#" class="block px-4 py-3 hover:bg-gray-100 transition-colors">
+                                <div class="font-medium text-green-600">Переглянути всі категорії →</div>
                             </a>
                         </div>
                     </div>
                 </div>
 
-
                 <div class="flex-grow flex items-center bg-white rounded-lg overflow-hidden max-w-2xl shadow-sm">
-                    <input type="text" placeholder="Що шукаєте сьогодні?"
-                        class="py-3 px-4 flex-grow focus:outline-none text-gray-800 placeholder-gray-500" />
-                    <button
-                        class="bg-green-600 text-white px-6 py-3 hover:bg-green-700 focus:outline-none transition-colors font-medium">Знайти</button>
+                    <input type="text" placeholder="Що шукаєте сьогодні?" class="py-3 px-4 flex-grow focus:outline-none text-gray-800 placeholder-gray-500" />
+                    <button class="bg-green-600 text-white px-6 py-3 hover:bg-green-700 focus:outline-none transition-colors font-medium">Знайти</button>
                 </div>
             </nav>
 
             <div class="flex items-center space-x-4 ml-auto lg:ml-0">
                 <div class="relative">
-                    <button id="language-button"
-                        class="text-white flex items-center space-x-1 focus:outline-none hover:text-gray-300 transition-colors">
+                    <button id="language-button" class="text-white flex items-center space-x-1 focus:outline-none hover:text-gray-300 transition-colors">
                         <span class="font-medium">UA</span>
                         <i class="fa-solid fa-chevron-down text-xs"></i>
                     </button>
-                    <div id="language-dropdown"
-                        class="absolute hidden bg-white text-gray-800 rounded-lg shadow-lg mt-2 w-20 right-0 z-10 border">
+                    <div id="language-dropdown" class="absolute hidden bg-white text-gray-800 rounded-lg shadow-lg mt-2 w-20 right-0 z-10 border">
                         <a href="#" class="block px-4 py-2 hover:bg-gray-100 transition-colors text-center">EN</a>
                         <a href="#" class="block px-4 py-2 hover:bg-gray-100 transition-colors text-center">RU</a>
                     </div>
                 </div>
 
-                {% if user.is_authenticated %}
-                <a href="{% url 'profile' %}"
-                    class="inline-flex items-center px-3 py-1.5 bg-[#00a046] text-white text-sm font-semibold rounded-lg hover:bg-[#00913f] transition">
-                    <img src="{% static 'images/free-icon-font-user.png' %}" alt="User Icon" width="20" height="20"
-                        class="mr-2" />
-                    Мій профіль
-                </a>
-                {% else %}
-                <button id="nafig_modal" style="padding: 5px;">
-                    <a href="{% url 'login' %}">
-                        <img src="{% static 'images/free-icon-font-user.png' %}" alt="User Icon" width="25"
-                            height="25" />
-                    </a>
+                <button id="openLoginModal" style="padding: 5px;">
+                    <img src="{% static 'images/free-icon-font-user.png' %}" alt="User Icon" width="25" height="25" />
                 </button>
-                {% endif %}
 
                 <button id="open-cart-modal" style="padding: 5px;">
-                    <img src="{% static 'images/free-icon-font-shopping-cart.png' %}" alt="Cart Icon" width="25"
-                        height="25" />
+                    <img src="{% static 'images/free-icon-font-shopping-cart.png' %}" alt="Cart Icon" width="25" height="25" />
                 </button>
+            </div>
+
+                
+                
+        
             </div>
         </div>
     </header>
@@ -260,18 +245,33 @@
         {% block content %}
         {% endblock %}
     </main>
-    <!--Footer -->
+
+    
+      
     <footer class="bg-gray-900 text-white mt-auto">
+        <div class="bg-green-600 py-8">
+            <div class="container mx-auto px-4">
+                <div class="flex flex-col md:flex-row items-center justify-between">
+                    <div class="mb-4 md:mb-0 text-center md:text-left">
+                        <h3 class="text-2xl font-bold mb-2">Підпишіться на новини</h3>
+                        <p class="text-green-100">Отримуйте найкращі пропозиції та акції першими</p>
+                    </div>
+                    <div class="flex w-full max-w-md">
+                        <input type="email" placeholder="Ваш email" class="flex-grow py-3 px-4 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 text-gray-800" />
+                        <button class="bg-yellow-400 text-black px-6 py-3 rounded-r-lg hover:bg-yellow-500 transition-colors font-medium focus:outline-none focus:ring-2 focus:ring-yellow-400">Підписатися</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="container mx-auto px-4 py-12">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                 <div class="space-y-4">
                     <div class="flex items-center space-x-3">
-                        <img src="https://content2.rozetka.com.ua/mb_logo/image_site_light_theme/original/555588630.svg"
-                            alt="Logo" class="h-10 w-auto" />
+                        <img src="https://content2.rozetka.com.ua/mb_logo/image_site_light_theme/original/555588630.svg" alt="Logo" class="h-10 w-auto" />
                     </div>
                     <p class="text-gray-300 leading-relaxed">
-                        Ваш надійний партнер у світі покупок. Якісні товари, доступні ціни та відмінний сервіс вже понад
-                        століття.
+                        Ваш надійний партнер у світі покупок. Якісні товари, доступні ціни та відмінний сервіс вже понад століття.
                     </p>
                     <div class="flex space-x-4">
                         <a href="#" class="text-gray-400 hover:text-white transition-colors">
@@ -293,8 +293,7 @@
                     <h4 class="text-lg font-semibold">Швидкі посилання</h4>
                     <ul class="space-y-3">
                         <li><a href="#" class="text-gray-300 hover:text-white transition-colors">Про нас</a></li>
-                        <li><a href="#" class="text-gray-300 hover:text-white transition-colors">Акції та знижки</a>
-                        </li>
+                        <li><a href="#" class="text-gray-300 hover:text-white transition-colors">Акції та знижки</a></li>
                         <li><a href="#" class="text-gray-300 hover:text-white transition-colors">Новинки</a></li>
                         <li><a href="#" class="text-gray-300 hover:text-white transition-colors">Хіти продажів</a></li>
                         <li><a href="#" class="text-gray-300 hover:text-white transition-colors">Блог</a></li>
@@ -305,12 +304,9 @@
                 <div class="space-y-4">
                     <h4 class="text-lg font-semibold">Обслуговування</h4>
                     <ul class="space-y-3">
-                        <li><a href="#" class="text-gray-300 hover:text-white transition-colors">Служба підтримки</a>
-                        </li>
-                        <li><a href="#" class="text-gray-300 hover:text-white transition-colors">Доставка і оплата</a>
-                        </li>
-                        <li><a href="#" class="text-gray-300 hover:text-white transition-colors">Повернення товару</a>
-                        </li>
+                        <li><a href="#" class="text-gray-300 hover:text-white transition-colors">Служба підтримки</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-white transition-colors">Доставка і оплата</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-white transition-colors">Повернення товару</a></li>
                         <li><a href="#" class="text-gray-300 hover:text-white transition-colors">Гарантія</a></li>
                         <li><a href="#" class="text-gray-300 hover:text-white transition-colors">FAQ</a></li>
                         <li><a href="#" class="text-gray-300 hover:text-white transition-colors">Контакти</a></li>
@@ -334,119 +330,121 @@
     </footer>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const button = document.getElementById("catalog-button");
-            const dropdown = document.getElementById("catalog-dropdown");
+        // Відкриття/закриття модального вікна входу
+        const openLoginModalBtn = document.getElementById('openLoginModal');
+        const loginModal = document.getElementById('loginModal');
+        const closeLoginModalBtn = document.getElementById('closeLoginModal');
 
-            button.addEventListener("click", function (e) {
-                dropdown.classList.toggle("hidden");
-            });
-
-            // Optional: hide dropdown when clicking outside
-            document.addEventListener("click", function (e) {
-                if (!button.contains(e.target) && !dropdown.contains(e.target)) {
-                    dropdown.classList.add("hidden");
-                }
-            });
+        openLoginModalBtn?.addEventListener('click', () => {
+            loginModal.classList.remove('hidden');
         });
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const cartModal = document.getElementById('cartModal');
-            const closeCartModalBtn = document.getElementById('closeCartModal');
-            const openCartModalBtn = document.getElementById('open-cart-modal');
-            const cartItemsContainer = document.getElementById('cartItemsContainer');
-            const emptyCartMessage = document.getElementById('emptyCartMessage');
+        closeLoginModalBtn?.addEventListener('click', () => {
+            loginModal.classList.add('hidden');
+        });
 
-            let cart = new Map();
-
-            // 🔓 Відкрити кошик
-            openCartModalBtn?.addEventListener('click', () => {
-                updateCartModal();
-                cartModal.classList.remove('hidden');
-            });
-
-            // ❌ Закрити кошик
-            closeCartModalBtn?.addEventListener('click', () => {
-                cartModal.classList.add('hidden');
-            });
-
-            cartModal?.addEventListener('click', e => {
-                if (e.target === cartModal) {
-                    cartModal.classList.add('hidden');
-                }
-            });
-
-            // 🎯 Натискання на іконку товару
-            document.querySelectorAll('.fa-cart-plus').forEach(img => {
-                img.addEventListener('click', () => {
-                    const id = img.dataset.productId;
-                    const name = img.dataset.productName;
-                    const price = img.dataset.productPrice;
-                    const image = img.dataset.productImage;
-                    const isAdded = img.dataset.added === 'true';
-
-                    if (isAdded) {
-                        cart.delete(id);
-                        img.dataset.added = 'false';
-                        img.src = "/static/images/free-icon-font-shopping-cart2.png";
-                    } else {
-                        cart.set(id, { name, price, image });
-                        img.dataset.added = 'true';
-                        img.src = "/static/images/free-icon-font-shopping-cart3.png";
-                    }
-
-                    updateCartModal();
-                    cartModal.classList.remove('hidden');
-                });
-            });
-
-            // 🔄 Оновлення вмісту кошика
-            function updateCartModal() {
-                cartItemsContainer.innerHTML = '';
-
-                if (cart.size === 0) {
-                    emptyCartMessage.classList.remove('hidden');
-                    return;
-                }
-
-                emptyCartMessage.classList.add('hidden');
-
-                cart.forEach((item, id) => {
-                    const div = document.createElement('div');
-                    div.className = 'flex items-center justify-between border-b pb-2';
-
-                    div.innerHTML = `
-                        <div class="flex items-center space-x-4">
-                            <img src="${item.image}" alt="${item.name}" class="w-12 h-12 object-contain rounded">
-                            <div>
-                                <p class="text-sm font-semibold">${item.name}</p>
-                                <p class="text-sm text-gray-500">${item.price} ₴</p>
-                            </div>
-                        </div>
-                        <button data-remove-id="${id}" class="text-red-500 hover:text-red-700 text-lg">&times;</button>
-                    `;
-
-                    cartItemsContainer.appendChild(div);
-                });
-
-                document.querySelectorAll('[data-remove-id]').forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        const id = btn.dataset.removeId;
-                        cart.delete(id);
-
-                        const icon = document.querySelector(`.add-to-cart-icon[data-product-id="${id}"]`);
-                        if (icon) {
-                            icon.dataset.added = 'false';
-                            icon.src = "/static/images/free-icon-font-shopping-cart2.png";
-                        }
-
-                        updateCartModal();
-                    });
-                });
+        loginModal?.addEventListener('click', (e) => {
+            if (e.target === loginModal) {
+                loginModal.classList.add('hidden');
             }
+        });document.addEventListener('DOMContentLoaded', () => {
+    const cartModal = document.getElementById('cartModal');
+    const closeCartModalBtn = document.getElementById('closeCartModal');
+    const openCartModalBtn = document.getElementById('open-cart-modal');
+    const cartItemsContainer = document.getElementById('cartItemsContainer');
+    const emptyCartMessage = document.getElementById('emptyCartMessage');
+
+    let cart = new Map();
+
+    // 🔓 Відкрити кошик
+    openCartModalBtn?.addEventListener('click', () => {
+        updateCartModal();
+        cartModal.classList.remove('hidden');
+    });
+
+    // ❌ Закрити кошик
+    closeCartModalBtn?.addEventListener('click', () => {
+        cartModal.classList.add('hidden');
+    });
+
+    cartModal?.addEventListener('click', e => {
+        if (e.target === cartModal) {
+            cartModal.classList.add('hidden');
+        }
+    });
+
+    // 🎯 Натискання на іконку товару
+    document.querySelectorAll('.add-to-cart-icon').forEach(img => {
+        img.addEventListener('click', () => {
+            const id = img.dataset.productId;
+            const name = img.dataset.productName;
+            const price = img.dataset.productPrice;
+            const image = img.dataset.productImage;
+            const isAdded = img.dataset.added === 'true';
+
+            if (isAdded) {
+                cart.delete(id);
+                img.dataset.added = 'false';
+                img.src = "/static/images/free-icon-font-shopping-cart2.png";
+            } else {
+                cart.set(id, { name, price, image });
+                img.dataset.added = 'true';
+                img.src = "/static/images/free-icon-font-shopping-cart3.png";
+            }
+
+            updateCartModal();
+            cartModal.classList.remove('hidden');
+        });
+    });
+
+    // 🔄 Оновлення вмісту кошика
+    function updateCartModal() {
+        cartItemsContainer.innerHTML = '';
+
+        if (cart.size === 0) {
+            emptyCartMessage.classList.remove('hidden');
+            return;
+        }
+
+        emptyCartMessage.classList.add('hidden');
+
+        cart.forEach((item, id) => {
+            const div = document.createElement('div');
+            div.className = 'flex items-center justify-between border-b pb-2';
+
+            div.innerHTML = `
+                <div class="flex items-center space-x-4">
+                    <img src="${item.image}" alt="${item.name}" class="w-12 h-12 object-contain rounded">
+                    <div>
+                        <p class="text-sm font-semibold">${item.name}</p>
+                        <p class="text-sm text-gray-500">${item.price} ₴</p>
+                    </div>
+                </div>
+                <button data-remove-id="${id}" class="text-red-500 hover:text-red-700 text-lg">&times;</button>
+            `;
+
+            cartItemsContainer.appendChild(div);
         });
 
-    </script>
+        document.querySelectorAll('[data-remove-id]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const id = btn.dataset.removeId;
+                cart.delete(id);
+
+                const icon = document.querySelector(`.add-to-cart-icon[data-product-id="${id}"]`);
+                if (icon) {
+                    icon.dataset.added = 'false';
+                    icon.src = "/static/images/free-icon-font-shopping-cart2.png";
+                }
+
+                updateCartModal();
+            });
+        });
+    }
+});
+</script>
+
 </body>
 
 </html>
+
