@@ -5,8 +5,21 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
 from .models import Category, Product, Promo  # ОБОВ’ЯЗКОВО
+from django.db.models import Q
 
 from .forms import ProfileEditForm, LoginForm, UserRegisterForm  # Імпортуємо форму для редагування профілю
+
+
+def search_products(request):
+    query = request.GET.get('q', '')
+    products = Product.objects.filter(
+        Q(name__icontains=query) | Q(description__icontains=query),
+        available=True
+    )
+    return render(request, 'shop/search_results.html', {
+        'products': products,
+        'query': query
+    })
 
 def home(request):
     products = Product.objects.all()
