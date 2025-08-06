@@ -12,66 +12,28 @@
     {% block opengraph %}{% endblock %}
 
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'green-600': '#a9c559',
+                        'green-700': '#8da44a',
+                        'orange-600': '#f3785a',                        
+                    },
+                },
+            },
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/animejs@4.1.2/lib/anime.iife.min.js"></script>
 
-    <!-- хто видалив тут font-awesome, я через вас 2 години потратив в пустоту бо не міг зрозуміти чого іконок немає-->
+    <!-- icons-->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
         integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <link rel="stylesheet" type="text/css" href="{% static 'css/main.css' %}" />
 
-    <script>
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('sidebar-overlay');
-            sidebar.classList.toggle('-translate-x-full');
-            overlay.classList.toggle('hidden');
-        }
 
-        function closeSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('sidebar-overlay');
-            sidebar.classList.add('-translate-x-full');
-            overlay.classList.add('hidden');
-        }
-
-        document.addEventListener('DOMContentLoaded', function () {
-            const catalogButton = document.getElementById('catalog-button');
-            const catalogDropdown = document.getElementById('catalog-dropdown');
-            const languageButton = document.getElementById('language-button');
-            const languageDropdown = document.getElementById('language-dropdown');
-
-            if (catalogButton && catalogDropdown) {
-                catalogButton.addEventListener('click', function (e) {
-                    e.stopPropagation();
-                    catalogDropdown.classList.toggle('hidden');
-                });
-
-                document.addEventListener('click', function (e) {
-                    if (!catalogButton.contains(e.target) && !catalogDropdown.contains(e.target)) {
-                        catalogDropdown.classList.add('hidden');
-                    }
-                });
-            }
-
-            if (languageButton && languageDropdown) {
-                languageButton.addEventListener('click', function (e) {
-                    e.stopPropagation();
-                    languageDropdown.classList.toggle('hidden');
-                });
-
-                document.addEventListener('click', function (e) {
-                    if (!languageButton.contains(e.target) && !languageDropdown.contains(e.target)) {
-                        languageDropdown.classList.add('hidden');
-                    }
-                });
-            }
-
-            const sidebarOverlay = document.getElementById('sidebar-overlay');
-            if (sidebarOverlay) {
-                sidebarOverlay.addEventListener('click', closeSidebar);
-            }
-        });
-    </script>
 </head>
 
 <body class="min-h-screen flex flex-col bg-gray-50">
@@ -107,8 +69,8 @@
 
         <!-- Top of sidebar -->
         <div class="flex justify-between items-center p-4 border-b">
-            <img src="https://content2.rozetka.com.ua/mb_logo/image_site_light_theme/original/555588630.svg" class="h-8"
-                alt="Logo">
+                <img src="../../static/images/logo.svg"
+                    alt="Logo" class="h-8" />
             <button onclick="toggleSidebar()" class="text-gray-600 hover:text-black">
                 <i class="fas fa-times text-2xl"></i>
             </button>
@@ -149,7 +111,7 @@
             </a>
             <a href="#" class="flex items-center space-x-2 hover:text-green-600">
                 <i class="fas fa-store w-5 text-center"></i>
-                <span>Магазини Rozetka</span>
+                <span>Магазини Tingo</span>
             </a>
         </nav>
 
@@ -177,8 +139,8 @@
 
             <!-- Logo (right) -->
             <a href="{% url 'home' %}" class="flex items-center space-x-2">
-                <img src="https://content2.rozetka.com.ua/mb_logo/image_site_light_theme/original/555588630.svg"
-                    alt="Logo" class="h-10 w-auto" />
+                <img src="../../static/images/logo.svg"
+                    alt="Logo" class="h-10 w-auto pl-2" />
             </a>
 
             <nav class="hidden lg:flex flex-grow items-center space-x-6 ml-8">
@@ -266,8 +228,8 @@
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                 <div class="space-y-4">
                     <div class="flex items-center space-x-3">
-                        <img src="https://content2.rozetka.com.ua/mb_logo/image_site_light_theme/original/555588630.svg"
-                            alt="Logo" class="h-10 w-auto" />
+                    <img src="../../static/images/logo.svg"
+                        alt="Logo" class="h-10 w-auto" />
                     </div>
                     <p class="text-gray-300 leading-relaxed">
                         Ваш надійний партнер у світі покупок. Якісні товари, доступні ціни та відмінний сервіс вже понад
@@ -321,7 +283,7 @@
                     <h4 class="text-lg font-semibold">Контакти</h4>
                     <ul class="space-y-3 text-gray-300">
                         <li><i class="fa-solid fa-phone mr-2"></i> +38 (044) 555-55-55</li>
-                        <li><i class="fa-solid fa-envelope mr-2"></i> support@rozetka.ua</li>
+                        <li><i class="fa-solid fa-envelope mr-2"></i> support@tingo.ua</li>
                         <li><i class="fa-solid fa-map-marker-alt mr-2"></i> вул. Велика Васильківська, 20, Київ</li>
                     </ul>
                 </div>
@@ -329,7 +291,7 @@
         </div>
 
         <div class="bg-gray-800 text-gray-400 text-center py-6">
-            © 2025 Rozetka.ua — інтернет-магазин
+            © 2025 Tingo.ua — інтернет-магазин
         </div>
     </footer>
 
@@ -446,6 +408,59 @@
             }
         });
 
+    </script>
+        <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            sidebar.classList.toggle('-translate-x-full');
+            overlay.classList.toggle('hidden');
+        }
+
+        function closeSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            sidebar.classList.add('-translate-x-full');
+            overlay.classList.add('hidden');
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const catalogButton = document.getElementById('catalog-button');
+            const catalogDropdown = document.getElementById('catalog-dropdown');
+            const languageButton = document.getElementById('language-button');
+            const languageDropdown = document.getElementById('language-dropdown');
+
+            if (catalogButton && catalogDropdown) {
+                catalogButton.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    catalogDropdown.classList.toggle('hidden');
+                });
+
+                document.addEventListener('click', function (e) {
+                    if (!catalogButton.contains(e.target) && !catalogDropdown.contains(e.target)) {
+                        catalogDropdown.classList.add('hidden');
+                    }
+                });
+            }
+
+            if (languageButton && languageDropdown) {
+                languageButton.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    languageDropdown.classList.toggle('hidden');
+                });
+
+                document.addEventListener('click', function (e) {
+                    if (!languageButton.contains(e.target) && !languageDropdown.contains(e.target)) {
+                        languageDropdown.classList.add('hidden');
+                    }
+                });
+            }
+
+            const sidebarOverlay = document.getElementById('sidebar-overlay');
+            if (sidebarOverlay) {
+                sidebarOverlay.addEventListener('click', closeSidebar);
+            }
+        });
     </script>
 </body>
 

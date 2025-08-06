@@ -5,69 +5,116 @@
 
 {% block content %}
 
-<!-- Promo Carousel -->
-{% include 'shop/_promo_carousel.html' %}
+<!-- Page Layout: Categories + Main Content -->
+<div class="flex w-full">
 
-<!-- Products Header -->
-<h2 class="text-2xl font-bold mb-6 mt-10 ml-8">Продукти</h2>
-
-<!-- Product List -->
-<div class="overflow-x-auto ml-8">
-    <div class="flex space-x-4 pb-6">
-        {% for product in products %}
-        <div class="min-w-[180px] max-w-[200px] bg-white border border-gray-200 rounded-lg p-3 shadow-sm hover:shadow-md transition flex-shrink-0 relative">
-
-            <!-- Favorite Icon -->
-            <div class="absolute top-2 right-2 text-orange-500 hover:text-orange-600 cursor-pointer">
-                <i class="far fa-heart"></i>
+    <!-- Category List -->
+    <div class="w-1/5 min-w-[160px] pl-16 py-6 border-r border-gray-200">
+        <!-- <h2 class="text-lg font-bold mb-4">Категорії</h2> -->
+        <div class="pl-16">
+            <div class="">
+            <ul class="text-left  space-y-2 pl-16">
+                {% for category in categories %}
+                <li>
+                    <a href="#" class=" text-lg text-gray-700 hover:text-orange-600">
+                        <i class="fa-solid fa-laptop"></i>
+                        {{ category.name }}
+                    </a>
+                </li>
+                {% empty %}
+                <li class="text-gray-400">Категорій немає.</li>
+                {% endfor %}
+                
             </div>
-
-            <!-- Product Image -->
-            <a href="{% url 'product_detail' product.id %}">
-                <img src="{{ product.get_image }}" alt="{{ product.name }}"
-                     class="w-full h-32 object-contain mb-2 rounded" loading="lazy">
-            </a>
-
-            <!-- Product Name -->
-            <p class="text-sm font-medium text-gray-800 truncate">
-                <a href="{% url 'product_detail' product.id %}">{{ product.name }}</a>
-            </p>
-
-            <!-- Rating -->
-            <div class="flex items-center text-yellow-400 text-xs mt-1">
-                <i class="fas fa-star mr-1"></i>
-                <span class="text-gray-800">{{ product.rating|floatformat:1|default:"0.0" }} / 5</span>
-                <span class="text-gray-500 ml-2">({{ product.review_count|default:"0" }} відгуків)</span>
+            <div class="text-left  space-y-2 pl-16">
+                <a href="#" class="text-lg text-orange-600 hover:text-gray-700">Знижки до 50%</a>
+                <a href="#" class="text-lg text-gray-700 hover:text-orange-600">Довідковий центр</a>
             </div>
+            </ul>
+        </div>
+    </div>
 
-            <!-- Availability -->
-            <p class="text-xs mt-1 {% if product.available %}text-green-600{% else %}text-red-500{% endif %}">
-                {% if product.available %}
-                    Є в наявності
-                {% else %}
-                    Немає в наявності
-                {% endif %}
-            </p>
+    <!-- Right Side: Promo + Products -->
+    <div class="flex-1 px-4">
 
-            <!-- Price -->
-            <p class="text-base font-bold mt-2 text-gray-900">
-                {{ product.price }} ₴
-            </p>
+        <!-- Promo Carousel -->
+        <div class="border-b border-gray-200 pb-4 mb-6">
+            {% include 'shop/_promo_carousel.html' %}
+        </div>
 
-            <!-- Add to Cart -->
-            <div class="mt-3 text-right">
-                <button class="text-green-600 text-lg hover:text-green-800">
-                    <i data-product-id="{{ product.id }}"
-                    data-product-name="{{ product.name }}"
-                    data-product-price="{{ product.price }}"
-                    data-product-image="{{ product.get_image }}"
-                    data-added="false"class="fas fa-cart-plus"></i>
-                </button>
+        <!-- Products Header -->
+        <h2 class="text-2xl font-bold mb-6 mt-6">Продукти</h2>
+
+        <!-- Product List -->
+        <div class="overflow-x-auto">
+            <div class="flex space-x-4 pb-6">
+                {% for product in products %}
+                <div
+                    class="min-w-[200px] max-w-[220px] bg-white rounded-2xl p-4 shadow-md hover:shadow-xl transition-all duration-300 ease-in-out transform hover:-translate-y-1 flex-shrink-0 relative">
+
+                    <!-- Favorite Icon -->
+                    <div class="absolute top-2 right-2 text-orange-500 hover:text-orange-600 cursor-pointer">
+                        <i class="far fa-heart"></i>
+                    </div>
+
+                    <!-- Product Image -->
+                    <a href="{% url 'product_detail' product.id %}">
+                        <img src="{{ product.get_image }}" alt="{{ product.name }}"
+                            class="w-full h-36 object-contain mb-2 rounded" loading="lazy">
+                    </a>
+
+                    <!-- Product Name -->
+                    <p class="text-sm text-gray-700 text-left leading-snug break-words max-w-full">
+                        <a href="{% url 'product_detail' product.id %}">
+                            {{ product.name|truncatechars:40 }}
+                        </a>
+                    </p>
+
+                    <!-- Brand & Size -->
+                    <p class="text-xs text-center text-gray-500 mt-1">
+                        {{ product.brand|default:"" }} {{ product.size|default:"" }}
+                    </p>
+
+                    <!-- Rating -->
+                    <div class="flex items-center text-yellow-400 text-xs mt-1">
+                        {% with rating=product.rating|default:0 %}
+                        {% with full_stars=rating|floatformat:0 %}
+                        {% for i in "12345" %}
+                        {% if forloop.counter <= full_stars %} <i class="fa-solid fa-star mr-0.5"></i>
+                            {% else %}
+                            <i class="fa-regular fa-star mr-0.5"></i>
+                            {% endif %}
+                            {% endfor %}
+                            {% endwith %}
+                            <span class="text-gray-800 ml-1">{{ rating|floatformat:1 }}</span>
+                            <span class="text-gray-500 ml-2">({{ product.review_count|default:"0" }} відгуків)</span>
+                            {% endwith %}
+                    </div>
+
+                    <!-- Old Price -->
+                    <p class="text-sm text-left line-through text-gray-400 mt-2">
+                        {{ product.old_price|default:"" }}
+                    </p>
+
+                    <!-- Discount Price -->
+                    <p class="text-lg font-bold text-left text-orange-600">
+                        {{ product.price }} ₴
+                    </p>
+
+                    <!-- Cart Icon -->
+                    <div class="absolute bottom-2 right-2">
+                        <button class="text-gray-700 hover:text-green-600 text-lg">
+                            <i data-product-id="{{ product.id }}" data-product-name="{{ product.name }}"
+                                data-product-price="{{ product.price }}" data-product-image="{{ product.get_image }}"
+                                data-added="false" class="fas fa-shopping-basket"></i>
+                        </button>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-gray-500">Немає продуктів для рекомендації.</p>
+                {% endfor %}
             </div>
         </div>
-        {% empty %}
-        <p class="text-gray-500">Немає продуктів для рекомендації.</p>
-        {% endfor %}
     </div>
 </div>
 

@@ -24,6 +24,7 @@ def all_categories(request):
     categories = Category.objects.all()
     return render(request, 'shop/all_categories.html', {'categories': categories})
 
+
 def register(request):
     if request.method == 'POST':
         form = UserRegisterForm(request.POST)
