@@ -33,6 +33,25 @@ def home(request):
         'categories': categories,
     })
 
+def home(request, category_slug=None):
+    promos = Promo.objects.filter(display=True).order_by('-created_at')
+    categories = Category.objects.filter(parent__isnull=True)
+    current_category = None
+    products = Product.objects.all()
+
+    if category_slug:
+        current_category = get_object_or_404(Category, slug=category_slug)
+        categories = current_category.children.all()
+        category_ids = [current_category.id] + list(current_category.children.values_list('id', flat=True))
+        products = Product.objects.filter(categories__id__in=category_ids).distinct()
+
+    return render(request, 'shop/home.html', {
+        'promos': promos,
+        'categories': categories,
+        'current_category': current_category,
+        'products': products,
+    })
+
 def all_categories(request):
     categories = Category.objects.all()
     return render(request, 'shop/all_categories.html', {'categories': categories})

@@ -11,24 +11,28 @@
     <!-- Category List -->
     <div class="w-1/5 min-w-[160px] pl-16 py-6 border-r border-gray-200">
         <!-- <h2 class="text-lg font-bold mb-4">Категорії</h2> -->
-        <div class="pl-16">
+        <div>
             <div class="">
-            <ul class="text-left  space-y-2 pl-16">
-                {% for category in categories %}
-                <li>
-                    <a href="#" class=" text-lg text-gray-700 hover:text-orange-600">
-                        <i class="fa-solid fa-laptop"></i>
-                        {{ category.name }}
-                    </a>
-                </li>
-                {% empty %}
-                <li class="text-gray-400">Категорій немає.</li>
-                {% endfor %}
-                
+                <ul class="text-left  space-y-2 pl-16">
+                    {% for category in categories %}
+                    <li>
+                        <a href="{% url 'home' category.slug %}" class=" text-base text-gray-700 hover:text-orange-600">
+                            {% if category.icon %}
+                            <i class="fa-solid {{ category.icon }}"></i>
+                            {% else %}
+                            <i class="fa-solid fa-box"></i>
+                            {% endif %}
+                            {{ category.name }}
+                        </a>
+                    </li>
+                    {% empty %}
+                    <li class="text-gray-400">Категорій немає.</li>
+                    {% endfor %}
+
             </div>
             <div class="text-left  space-y-2 pl-16">
-                <a href="#" class="text-lg text-orange-600 hover:text-gray-700">Знижки до 50%</a>
-                <a href="#" class="text-lg text-gray-700 hover:text-orange-600">Довідковий центр</a>
+                <a href="#" class="text-base text-orange-600 hover:text-gray-700">Знижки до 50%</a>
+                <a href="#" class="text-base text-gray-700 hover:text-orange-600">Довідковий центр</a>
             </div>
             </ul>
         </div>
