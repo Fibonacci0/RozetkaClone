@@ -1,0 +1,49 @@
+{% extends "shop/_layout.html" %}
+
+{% block content %}
+<h2 class="text-xl font-bold mb-4">Список товарів</h2>
+
+<form method="get" class="mb-6 space-y-4 p-4 border rounded-lg shadow-sm bg-gray-50">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+            {{ form.manufacturer.label_tag }}
+            {{ form.manufacturer }}
+        </div>
+        <div>
+            {{ form.country.label_tag }}
+            {{ form.country }}
+        </div>
+        <div>
+            {{ form.min_price.label_tag }}
+            {{ form.min_price }}
+        </div>
+        <div>
+            {{ form.max_price.label_tag }}
+            {{ form.max_price }}
+        </div>
+    </div>
+    <button type="submit" class="mt-4 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+        Фільтрувати
+    </button>
+</form>
+
+<hr class="my-4">
+
+
+{% if products %}
+    <ul class="space-y-3">
+        {% for product in products %}
+            <li class="p-4 border rounded-lg shadow-sm hover:shadow-md transition duration-200">
+                <strong class="text-lg">{{ product.name }}</strong><br>
+                Виробник: {{ product.manufacturer }} | Країна: {{ product.country }}<br>
+                Ціна: <span class="font-bold text-green-700">{{ product.price }} грн</span>
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p class="text-red-600 font-semibold">Немає товару</p>
+{% endif %}
+
+{% endblock %}
+
+

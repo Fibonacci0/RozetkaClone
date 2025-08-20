@@ -32,6 +32,7 @@ class ProfileEditForm(forms.ModelForm):
         model = User
         fields = ['first_name', 'last_name', 'email']
 
+
 class LoginForm(forms.Form):
     username = forms.CharField(
         label='Ім’я користувача',
@@ -45,7 +46,8 @@ class LoginForm(forms.Form):
             'class': 'w-full px-4 py-2 text-base border border-gray-300 rounded-md focus:ring-2 focus:ring-[#00a046] focus:outline-none bg-gray-50'
         })
     )
-    
+
+
 class UserRegisterForm(UserCreationForm):
     class Meta:
         model = User
@@ -57,3 +59,11 @@ class UserRegisterForm(UserCreationForm):
             field.widget.attrs.update({
                 'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500'
             })
+
+
+# ✅ Форма для фільтрації товарів
+class ProductFilterForm(forms.Form):
+    manufacturer = forms.CharField(required=False, label="Виробник")
+    country = forms.CharField(required=False, label="Країна")
+    min_price = forms.DecimalField(required=False, decimal_places=2, max_digits=10, label="Мін. ціна")
+    max_price = forms.DecimalField(required=False, decimal_places=2, max_digits=10, label="Макс. ціна")

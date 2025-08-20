@@ -15,9 +15,15 @@ class Product(models.Model):
         blank=True,
         default='https://www.shutterstock.com/image-vector/missing-picture-page-website-design-600nw-1552421075.jpg'
     )
+
     category = models.CharField(max_length=100, blank=True)
     subcategory = models.CharField(max_length=100, blank=True)
-    slug = models.SlugField(null=True,max_length=100)  # new
+    slug = models.SlugField(null=True, max_length=100)
+
+    # ✅ нові поля для фільтрації
+    manufacturer = models.CharField(max_length=100, blank=True, default="Не вказано")  # виробник
+    country = models.CharField(max_length=100, blank=True, default="Не вказано")       # країна
+
     price = models.DecimalField(max_digits=10, decimal_places=2)
     available = models.BooleanField(default=True)
     created_at = models.DateTimeField(default=timezone.now)
@@ -31,6 +37,7 @@ class Product(models.Model):
 
     def __str__(self):
         return self.name
+
 
 class Review(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='reviews')
@@ -47,13 +54,14 @@ class Review(models.Model):
     def __str__(self):
         return f"Review by {self.user.username} for {self.product.name} ({self.rating}★)"
 
+
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
     slug = models.SlugField(unique=True)
-    
+
     class Meta:
         verbose_name_plural = "Categories"
-    
+
     def categories_context(request):
         return {
             'categories': Category.objects.all()
@@ -70,12 +78,13 @@ class SubCategory(models.Model):
 
     def __str__(self):
         return f"{self.category.name} / {self.name}"
-    
+
+
 class Promo(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
 
-    # загзука свого зображення
+    # завантаження свого зображення
     image = models.ImageField(upload_to='products/', blank=True, null=True)
 
     # URL
@@ -94,3 +103,4 @@ class Promo(models.Model):
 
     def __str__(self):
         return self.name
+
