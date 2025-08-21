@@ -76,18 +76,21 @@
             <!-- Заголовок -->
             <h2 class="text-2xl font-bold mb-4 text-center">Корзина</h2>
         
-            <!-- Список товарів -->
-            <div id="cartItemsContainer" class="space-y-4">
-                <!-- Товари зʼявлятимуться тут -->
+            <div id="cartContent" class="relative h-80">
+
+                <!-- Список товарів -->
+                <div id="cartItemsContainer" class="hidden h-full overflow-y-auto space-y-4 pr-2">
+                    <!-- Товари зʼявлятимуться тут -->
+                </div>
+            
+                <!-- Порожній кошик -->
+                <div id="emptyCartMessage" class="absolute inset-0 flex flex-col items-center justify-center text-gray-500">
+                    <img src="{% static 'images/Frame 167.png' %}" alt="Cart Icon" class="mx-auto mb-4 w-90 h-80 object-contain" />
+                </div>
             </div>
+
+
         
-            <!-- Порожній кошик -->
-            <div id="emptyCartMessage" class="text-center text-gray-500 mt-6">
-                <img src="{% static 'images/modal-cart-dummy.svg' %}" alt="Cart Icon"
-                    class="mx-auto mb-4 w-32 h-32 object-contain" />
-                <p class="text-lg">Кошик порожній</p>
-                <span class="text-sm">Але це ніколи не пізно виправити</span>
-            </div>
         </div>
 
     </div>
@@ -390,9 +393,11 @@
                 cartItemsContainer.innerHTML = '';
 
                 if (cart.size === 0) {
+                    cartItemsContainer.classList.add('hidden');
                     emptyCartMessage.classList.remove('hidden');
                     return;
                 }
+                cartItemsContainer.classList.remove('hidden');
                 emptyCartMessage.classList.add('hidden');
 
                 cart.forEach((item, id) => {
