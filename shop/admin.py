@@ -46,7 +46,7 @@ class ReviewAdmin(admin.ModelAdmin):
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ('name', 'parent', 'slug')
+    list_display = ('name', 'parent', 'slug', 'icon')
     search_fields = ('name',)
     list_filter = ('parent',)
     prepopulated_fields = {"slug": ("name",)}

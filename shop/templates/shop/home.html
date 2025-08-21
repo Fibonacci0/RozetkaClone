@@ -13,27 +13,37 @@
         <!-- <h2 class="text-lg font-bold mb-4">Категорії</h2> -->
         <div>
             <div class="">
-                <ul class="text-left  space-y-2 pl-16">
-                    {% for category in categories %}
+                <ul class="text-left space-y-2 pl-16">
+                {% for category in categories %}
+                    {% if category.slug %}
                     <li>
-                        <a href="{% url 'home' category.slug %}" class=" text-base text-gray-700 hover:text-orange-600">
-                            {% if category.icon %}
-                            <i class="fa-solid {{ category.icon }}"></i>
-                            {% else %}
-                            <i class="fa-solid fa-box"></i>
-                            {% endif %}
-                            {{ category.name }}
-                        </a>
-                    </li>
-                    {% empty %}
-                    <li class="text-gray-400">Категорій немає.</li>
-                    {% endfor %}
+                        <a href="{% url 'home' category.slug %}" class="text-base text-gray-700 hover:text-orange-600">
+                    {% if category.icon %}
+                    <i class="fa-solid {{ category.icon }} text-lg"></i>
+                    {% else %}
+                    <i class="fa-solid fa-box"></i>
+                {% endif %}
+                {{ category.name }}
+            </a>
+        </li>
+    {% endif %}
+{% empty %}
+    <li class="text-gray-400">Категорій немає.</li>
+{% endfor %}
 
+    </ul>
             </div>
-            <div class="text-left  space-y-2 pl-16">
-                <a href="#" class="text-base text-orange-600 hover:text-gray-700">Знижки до 50%</a>
-                <a href="#" class="text-base text-gray-700 hover:text-orange-600">Довідковий центр</a>
-            </div>
+
+            <div class="text-left space-y-2 pl-16 mt-6">
+                <a href="#" class="flex items-center text-base text-orange-600 hover:text-gray-700">
+                    <i class="fas fa-percent mr-2"></i> Знижки до 50%
+                </a>
+    </a>
+    <a href="#" class="flex items-center text-base text-gray-700 hover:text-orange-600">
+        <i class="fas fa-question-circle mr-2"></i> Довідковий центр
+    </a>
+</div>
+
             </ul>
         </div>
     </div>
