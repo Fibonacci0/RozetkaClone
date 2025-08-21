@@ -36,6 +36,35 @@
 
 </head>
 
+<style>
+    .cart-button {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        /* відстань між іконкою і текстом */
+        background-color: #7d97c2;
+        /* синій фон */
+        color: white;
+        border: none;
+        border-radius: 999px;
+        /* овальна форма */
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: background 0.2s ease;
+    }
+
+    .cart-button img {
+        width: 20px;
+        height: 20px;
+    }
+
+    .cart-button:hover {
+        background-color: #6c84af;
+        /* трохи темніший при наведенні */
+    }
+</style>
+
 <body class="min-h-screen flex flex-col bg-gray-50">
     <!-- Cart Modal -->
     <div id="cartModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
@@ -43,12 +72,16 @@
             class="bg-white w-full max-w-xl max-h-[80vh] p-6 rounded-xl relative shadow-2xl flex flex-col text-left overflow-y-auto">
             <button id="closeCartModal"
                 class="absolute top-4 right-4 text-gray-400 hover:text-black text-2xl leading-none">&times;</button>
+        
+            <!-- Заголовок -->
             <h2 class="text-2xl font-bold mb-4 text-center">Корзина</h2>
-
+        
+            <!-- Список товарів -->
             <div id="cartItemsContainer" class="space-y-4">
                 <!-- Товари зʼявлятимуться тут -->
             </div>
-
+        
+            <!-- Порожній кошик -->
             <div id="emptyCartMessage" class="text-center text-gray-500 mt-6">
                 <img src="{% static 'images/modal-cart-dummy.svg' %}" alt="Cart Icon"
                     class="mx-auto mb-4 w-32 h-32 object-contain" />
@@ -56,6 +89,7 @@
                 <span class="text-sm">Але це ніколи не пізно виправити</span>
             </div>
         </div>
+
     </div>
 
     <!-- Sidebar Backdrop -->
@@ -212,9 +246,9 @@
                 </button>
                 {% endif %}
 
-                <button id="open-cart-modal" style="padding: 5px;">
-                    <img src="{% static 'images/free-icon-font-shopping-cart.png' %}" alt="Cart Icon" width="25"
-                        height="25" />
+                <button id="open-cart-modal" class="cart-button">
+                    <img src="{% static 'images/free-icon-font-shopping-basket.png' %}" alt="Cart Icon" />
+                    <span>Корзина</span>
                 </button>
             </div>
         </div>
@@ -298,26 +332,11 @@
     </footer>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const button = document.getElementById("catalog-button");
-            const dropdown = document.getElementById("catalog-dropdown");
-
-            button.addEventListener("click", function (e) {
-                dropdown.classList.toggle("hidden");
-            });
-
-            // Optional: hide dropdown when clicking outside
-            document.addEventListener("click", function (e) {
-                if (!button.contains(e.target) && !dropdown.contains(e.target)) {
-                    dropdown.classList.add("hidden");
-                }
-            });
-        });
-
         document.addEventListener('DOMContentLoaded', () => {
+            // 🔹 Глобальні змінні
             const cartModal = document.getElementById('cartModal');
-            const closeCartModalBtn = document.getElementById('closeCartModal');
             const openCartModalBtn = document.getElementById('open-cart-modal');
+            const closeCartModalBtn = document.getElementById('closeCartModal');
             const cartItemsContainer = document.getElementById('cartItemsContainer');
             const emptyCartMessage = document.getElementById('emptyCartMessage');
 
@@ -340,23 +359,25 @@
                 }
             });
 
-            // 🎯 Натискання на іконку товару
-            document.querySelectorAll('.fa-cart-plus').forEach(img => {
-                img.addEventListener('click', () => {
-                    const id = img.dataset.productId;
-                    const name = img.dataset.productName;
-                    const price = img.dataset.productPrice;
-                    const image = img.dataset.productImage;
-                    const isAdded = img.dataset.added === 'true';
+            // 🎯 Додавання/видалення товару
+            document.querySelectorAll('[data-product-id]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const id = btn.dataset.productId;
+                    const name = btn.dataset.productName;
+                    const price = btn.dataset.productPrice;
+                    const image = btn.dataset.productImage;
+                    const isAdded = btn.dataset.added === 'true';
 
                     if (isAdded) {
                         cart.delete(id);
-                        img.dataset.added = 'false';
-                        img.src = "/static/images/free-icon-font-shopping-cart2.png";
+                        btn.dataset.added = 'false';
+                        btn.classList.remove('text-green-600');
+                        btn.classList.add('text-gray-700');
                     } else {
                         cart.set(id, { name, price, image });
-                        img.dataset.added = 'true';
-                        img.src = "/static/images/free-icon-font-shopping-cart3.png";
+                        btn.dataset.added = 'true';
+                        btn.classList.remove('text-gray-700');
+                        btn.classList.add('text-green-600');
                     }
 
                     updateCartModal();
@@ -364,7 +385,7 @@
                 });
             });
 
-            // 🔄 Оновлення вмісту кошика
+            // 🔄 Оновлення модалки
             function updateCartModal() {
                 cartItemsContainer.innerHTML = '';
 
@@ -372,7 +393,6 @@
                     emptyCartMessage.classList.remove('hidden');
                     return;
                 }
-
                 emptyCartMessage.classList.add('hidden');
 
                 cart.forEach((item, id) => {
@@ -380,28 +400,31 @@
                     div.className = 'flex items-center justify-between border-b pb-2';
 
                     div.innerHTML = `
-                        <div class="flex items-center space-x-4">
-                            <img src="${item.image}" alt="${item.name}" class="w-12 h-12 object-contain rounded">
-                            <div>
-                                <p class="text-sm font-semibold">${item.name}</p>
-                                <p class="text-sm text-gray-500">${item.price} ₴</p>
-                            </div>
+                    <div class="flex items-center space-x-4">
+                        <img src="${item.image}" alt="${item.name}" class="w-12 h-12 object-contain rounded">
+                        <div>
+                            <p class="text-sm font-semibold">${item.name}</p>
+                            <p class="text-sm text-gray-500">${item.price} ₴</p>
                         </div>
-                        <button data-remove-id="${id}" class="text-red-500 hover:text-red-700 text-lg">&times;</button>
-                    `;
+                    </div>
+                    <button data-remove-id="${id}" class="text-red-500 hover:text-red-700 text-lg">&times;</button>
+                `;
 
                     cartItemsContainer.appendChild(div);
                 });
 
+                // Видалення товару з кошика
                 document.querySelectorAll('[data-remove-id]').forEach(btn => {
                     btn.addEventListener('click', () => {
                         const id = btn.dataset.removeId;
                         cart.delete(id);
 
-                        const icon = document.querySelector(`.add-to-cart-icon[data-product-id="${id}"]`);
+                        // Оновлюємо іконку товару
+                        const icon = document.querySelector(`[data-product-id="${id}"]`);
                         if (icon) {
                             icon.dataset.added = 'false';
-                            icon.src = "/static/images/free-icon-font-shopping-cart2.png";
+                            icon.classList.remove('text-green-600');
+                            icon.classList.add('text-gray-700');
                         }
 
                         updateCartModal();
@@ -409,8 +432,8 @@
                 });
             }
         });
-
     </script>
+
         <script>
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
