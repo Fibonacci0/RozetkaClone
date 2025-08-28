@@ -63,6 +63,8 @@
         background-color: #6c84af;
         /* трохи темніший при наведенні */
     }
+
+    
 </style>
 
 <body class="min-h-screen flex flex-col bg-gray-50">
@@ -88,13 +90,32 @@
                     <img src="{% static 'images/Frame 167.png' %}" alt="Cart Icon" class="mx-auto mb-4 w-90 h-80 object-contain" />
                 </div>
             </div>
-
-
-        
         </div>
-
     </div>
 
+    <!-- Catalog Modal -->
+<div id="catalogModal" class="fixed inset-0 hidden items-center justify-center z-50">
+  <!-- Backdrop -->
+  <div class="absolute inset-0 bg-black bg-opacity-50" onclick="closeCatalogModal()"></div>
+
+  <!-- Modal Content -->
+  <div class="bg-white rounded-xl shadow-lg z-10 w-96 max-h-[80vh] overflow-y-auto">
+    <div class="flex justify-between items-center p-4 border-b">
+      <h2 class="text-lg font-semibold">Категорії товарів</h2>
+      <button onclick="closeCatalogModal()" class="text-gray-500 hover:text-gray-700">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <div class="p-4 space-y-2">
+      {% for category in categories %}
+        <a href="{% url 'home' category.slug %}" 
+           class="block px-4 py-2 rounded-lg hover:bg-gray-100 text-gray-700 font-medium">
+          {{ category.name }}
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+</div>
     <!-- Sidebar Backdrop -->
     <div id="sidebarBackdrop" class="fixed inset-0 bg-black bg-opacity-40 z-40 hidden" onclick="toggleSidebar()"></div>
 
@@ -166,96 +187,83 @@
         </nav>
     </div>
 
-    <header class="bg-black py-3 shadow-lg relative z-30">
-        <div class="container mx-auto px-4 py-3 flex items-center justify-between">
-            <!-- Burger button (left) -->
-            <button onclick="toggleSidebar()"
-                class="text-white focus:outline-none hover:text-gray-300 transition-colors mr-4 ml-4">
-                <i class="fas fa-bars text-2xl"></i>
-            </button>
+<header class="bg-black shadow-md border-b border-gray-200">
+<!-- Top Row -->
+<div class="max-w-6xl container mx-auto flex items-center justify-between mb-6 px-6 py-4 bg-white rounded-b-2xl shadow-lg shadow-green-800/80">
+  <!-- Logo -->
+  <a href="{% url 'home' %}" class="flex items-center space-x-2">
+    <img src="{% static 'images/logo.svg' %}" alt="Logo" class="h-8 w-auto" />
+  </a>
 
-            <!-- Logo (right) -->
-            <a href="{% url 'home' %}" class="flex items-center space-x-2">
-                <img src="../../static/images/logo.svg"
-                    alt="Logo" class="h-10 w-auto pl-2" />
-            </a>
+  <!-- Navigation -->
+  <nav class="flex flex-1 justify-evenly items-center divide-x divide-gray-300 ml-8">
+    <a href="#" class="flex items-center space-x-1 px-4 text-gray-700 hover:text-green-600">
+      <i class="fa-regular fa-paper-plane"></i>
+      <span>Чат з TinGo</span>
+    </a>
 
-            
-            <nav class="hidden lg:flex flex-grow items-center space-x-6 ml-8">
-                <div class="relative group">
-                    <!-- Catalog button -->
-                    <button id="catalog-button"
-                        class="bg-green-600 text-white px-5 py-2.5 rounded-lg flex items-center space-x-2 hover:bg-green-700 focus:outline-none transition-all">
-                        <i class="fa-solid fa-th-large text-lg"></i>
-                        <span class="font-medium">Каталог товарів</span>
-                    </button>
+    <!-- Catalog Modal Trigger -->
+    <button onclick="openCatalogModal()" class="flex items-center space-x-1 px-4 text-gray-700 hover:text-green-600">
+      <i class="fa-solid fa-table-cells-large"></i>
+      <span>Каталог</span>
+    </button>
 
-                    <!-- Dropdown menu -->
-                    <div id="catalog-dropdown"
-                        class="absolute left-0 mt-2 w-72 bg-white rounded-lg shadow-xl border border-gray-200 z-50 hidden group-hover:block">
-                        <div class="py-2">
-            {% for category in categories %}
-                <a href="#"
-                   class="block px-5 py-3 text-lg font-semibold text-gray-800 hover:text-[#00a046] hover:bg-gray-50 transition">
-                    {{ category.name }}
-                </a>
-            {% endfor %}
+    {% if user.is_authenticated %}
+    <a href="#" class="flex items-center space-x-1 px-4 text-gray-700 hover:text-green-600">
+      <i class="fa-solid fa-bag-shopping"></i>
+      <span>Замовлення</span>
+    </a>
+    {% endif %}
 
-                            <a href="{% url 'all_categories' %}"
-                                class="block px-5 py-3 text-green-600 hover:bg-gray-50 transition-colors">
-                                <div class="font-semibold">Переглянути всі категорії →</div>
-                            </a>
-                        </div>
-                    </div>
-                </div>
+    <a href="{% url 'profile' %}" class="flex items-center space-x-1 px-4 text-gray-700 hover:text-green-600">
+      <i class="fa-regular fa-user"></i>
+      <span>Кабінет</span>
+    </a>
+
+    <!-- Cart Button -->
+    <button id="open-cart-modal" class="flex items-center space-x-1 px-4 text-gray-700 hover:text-green-600 focus:outline-none">
+      <i class="fa-solid fa-basket-shopping"></i>
+      <span>Кошик</span>
+    </button>
+  </nav>
+</div>
 
 
-                <form action="{% url 'search_products' %}" method="get" class="flex-grow flex items-center bg-white rounded-lg overflow-hidden max-w-2xl shadow-sm">
-                    <input type="text" name="q" placeholder="Що шукаєте сьогодні?" class="py-3 px-4 flex-grow focus:outline-none text-gray-800 placeholder-gray-500" />
-                    <button type="submit" class="bg-green-600 text-white px-6 py-3 hover:bg-green-700 focus:outline-none transition-colors font-medium">
-                        Знайти
-                    </button>
-                </form>
 
-            </nav>
+  <!-- Second Row -->
+  <div class="max-w-6xl container mx-auto flex items-center px-6 pb-4 space-x-4">
+    <!-- Burger Menu -->
+    <button onclick="toggleSidebar()" class="text-white hover:text-green-600 text-2xl">
+      <i class="fas fa-bars"></i>
+    </button>
 
-            <div class="flex items-center space-x-4 ml-auto lg:ml-0">
-                <div class="relative">
-                    <button id="language-button"
-                        class="text-white flex items-center space-x-1 focus:outline-none hover:text-gray-300 transition-colors">
-                        <span class="font-medium">UA</span>
-                        <i class="fa-solid fa-chevron-down text-xs"></i>
-                    </button>
-                    <div id="language-dropdown"
-                        class="absolute hidden bg-white text-gray-800 rounded-lg shadow-lg mt-2 w-20 right-0 z-10 border">
-                        <a href="#" class="block px-4 py-2 hover:bg-gray-100 transition-colors text-center">EN</a>
-                        <a href="#" class="block px-4 py-2 hover:bg-gray-100 transition-colors text-center">RU</a>
-                    </div>
-                </div>
+    <!-- Language Selector -->
+    <div class="relative">
+      <button id="language-button" class="flex items-center space-x-1 text-white hover:text-green-600 focus:outline-none">
+        <span class="font-medium">UA</span>
+        <i class="fa-solid fa-chevron-down text-xs"></i>
+      </button>
+    </div>
 
-                {% if user.is_authenticated %}
-                <a href="{% url 'profile' %}"
-                    class="inline-flex items-center px-3 py-1.5 bg-[#00a046] text-white text-sm font-semibold rounded-lg hover:bg-[#00913f] transition">
-                    <img src="{% static 'images/free-icon-font-user.png' %}" alt="User Icon" width="20" height="20"
-                        class="mr-2" />
-                    Мій профіль
-                </a>
-                {% else %}
-                <button id="nafig_modal" style="padding: 5px;">
-                    <a href="{% url 'login' %}">
-                        <img src="{% static 'images/free-icon-font-user.png' %}" alt="User Icon" width="25"
-                            height="25" />
-                    </a>
-                </button>
-                {% endif %}
+    <!-- Search Bar -->
+    <form action="{% url 'search_products' %}" method="get" class="flex-grow flex items-center bg-white rounded-full border overflow-hidden shadow-sm">
+      <input type="text" name="q" placeholder="Я шукаю..." class="py-3 px-4 flex-grow focus:outline-none text-gray-800 placeholder-gray-500" />
+      <button type="submit" class="bg-red-400 text-white px-6 py-3 hover:bg-red-500 focus:outline-none transition-colors font-medium">
+        Знайти
+      </button>
+    </form>
 
-                <button id="open-cart-modal" class="cart-button">
-                    <img src="{% static 'images/free-icon-font-shopping-basket.png' %}" alt="Cart Icon" />
-                    <span>Корзина</span>
-                </button>
-            </div>
-        </div>
-    </header>
+    <!-- Icons -->
+    <button class="text-white hover:text-green-600">
+      <i class="fa-regular fa-heart"></i>
+    </button>
+    <button class="text-white hover:text-green-600">
+      <i class="fa-regular fa-bell"></i>
+    </button>
+  </div>
+</header>
+
+
 
     <main class="flex-grow">
         {% block content %}
@@ -323,7 +331,7 @@
                     <ul class="space-y-3 text-gray-300">
                         <li><i class="fa-solid fa-phone mr-2"></i> +38 (044) 555-55-55</li>
                         <li><i class="fa-solid fa-envelope mr-2"></i> support@tingo.ua</li>
-                        <li><i class="fa-solid fa-map-marker-alt mr-2"></i> вул. Велика Васильківська, 20, Київ</li>
+                        <li><i class="fa-solid fa-map-marker-alt mr-2"></i> вул. Велика Васильківська, 20, Рівне</li>
                     </ul>
                 </div>
             </div>
@@ -492,6 +500,18 @@
             }
         });
     </script>
+<script>
+function openCatalogModal() {
+  document.getElementById("catalogModal").classList.remove("hidden");
+  document.getElementById("catalogModal").classList.add("flex");
+}
+
+function closeCatalogModal() {
+  document.getElementById("catalogModal").classList.remove("flex");
+  document.getElementById("catalogModal").classList.add("hidden");
+}
+</script>
+
 </body>
 
 </html>
