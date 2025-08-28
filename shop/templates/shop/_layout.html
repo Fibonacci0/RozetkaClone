@@ -239,13 +239,17 @@
                         class="mr-2" />
                     Мій профіль
                 </a>
-                {% else %}
-                <button id="nafig_modal" style="padding: 5px;">
-                    <a href="{% url 'login' %}">
-                        <img src="{% static 'images/free-icon-font-user.png' %}" alt="User Icon" width="25"
-                            height="25" />
-                    </a>
+                <button id="nafig_modal" class="inline-flex items-center px-3 py-1.5 bg-[#00a046] text-white text-sm font-semibold rounded-lg hover:bg-[#00913f] transition">
+                   <img src="{% static 'images/free-icon-font-user.png' %}" alt="User Icon" width="25" height="25" />
+                   <span class="ml-2">Увійти</span>
                 </button>
+
+<script>
+    document.getElementById('nafig_modal').addEventListener('click', () => {
+        window.location.href = "{% url 'login' %}";
+    });
+</script>
+
                 {% endif %}
 
                 <button id="open-cart-modal" style="padding: 5px;">

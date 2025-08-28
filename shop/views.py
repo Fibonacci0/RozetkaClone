@@ -1,10 +1,17 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import login, authenticate, logout
+from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
 from django.contrib import messages
-from .models import Category, Product, Promo
-from .forms import ProfileEditForm, LoginForm, UserRegisterForm, ProductFilterForm
+
+from .models import Product, Category, SubCategory, Promo, ProductAttribute
+from .forms import (
+    DynamicProductFilterForm,
+    LoginForm,
+    UserRegisterForm,
+    ProfileEditForm,
+    ProductForm,
+    ProductAttributeFormSet
+)
 
 
 def home(request):
@@ -18,9 +25,69 @@ def home(request):
     })
 
 
-def all_categories(request):
-    categories = Category.objects.all()
-    return render(request, 'shop/all_categories.html', {'categories': categories})
+def product_list(request, category_slug=None, subcategory_slug=None):
+    category = None
+    subcategory = None
+    products = Product.objects.all()
+
+    if category_slug:
+        category = get_object_or_404(Category, slug=category_slug)
+        products = products.filter(category=category)
+    if subcategory_slug:
+        subcategory = get_object_or_404(SubCategory, slug=subcategory_slug)
+        products = products.filter(subcategory=subcategory)
+
+    # ------------------- Фільтри -------------------
+    filter_form = DynamicProductFilterForm(category=category, subcategory=subcategory, data=request.GET or None)
+    if filter_form.is_valid():
+        cd = filter_form.cleaned_data
+        if cd.get('manufacturer'):
+            products = products.filter(manufacturer__icontains=cd['manufacturer'])
+        if cd.get('country'):
+            products = products.filter(country__icontains=cd['country'])
+        if cd.get('min_price') is not None:
+            products = products.filter(price__gte=cd['min_price'])
+        if cd.get('max_price') is not None:
+            products = products.filter(price__lte=cd['max_price'])
+        if cd.get('available'):
+            products = products.filter(available=True)
+
+        # Виправлено динамічні атрибути
+        for field_name, value in cd.items():
+            if field_name.startswith('attr_') and value:
+                attr_name = field_name[5:].replace('_', ' ')
+                products = products.filter(
+                    attributes__filter_option__name__iexact=attr_name,
+                    attributes__value__icontains=value
+                )
+
+    # ------------------- Додавання нового товару -------------------
+    if request.method == 'POST' and 'add_product' in request.POST:
+        product_form = ProductForm(request.POST, request.FILES)
+        attr_form = ProductAttributeFormSet(request.POST)
+        if product_form.is_valid() and attr_form.is_valid():
+            product = product_form.save()
+            attr_form.instance = product
+            attr_form.save()
+            messages.success(request, f"Товар '{product.name}' додано!")
+            return redirect('product_list')
+    else:
+        product_form = ProductForm()
+        attr_form = ProductAttributeFormSet()
+
+    return render(request, "shop/product_list.html", {
+        'category': category,
+        'subcategory': subcategory,
+        'products': products.distinct(),
+        'form': filter_form,
+        'product_form': product_form,
+        'attr_form': attr_form,
+    })
+
+
+def product_detail(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+    return render(request, 'shop/product_detail.html', {'product': product})
 
 
 def register(request):
@@ -37,7 +104,7 @@ def register(request):
 
 def user_login(request):
     if request.user.is_authenticated:
-        return redirect('profile')
+        return redirect('home')
 
     if request.method == 'POST':
         form = LoginForm(request, data=request.POST)
@@ -76,37 +143,6 @@ def profile_edit_view(request):
     return render(request, 'shop/profile_edit.html', {'form': form})
 
 
-def product_detail(request, product_id):
-    product = get_object_or_404(Product, id=product_id)
-    return render(request, 'shop/product_detail.html', {'product': product})
-
-
-def product_list(request):
-    # Отримуємо всі товари
-    products = Product.objects.all()
-
-    # Створюємо форму з GET-параметрів (або None)
-    form = ProductFilterForm(request.GET or None)
-
-    # Якщо форма валідна, фільтруємо товари
-    if form.is_valid():
-        manufacturer = form.cleaned_data.get("manufacturer")
-        country = form.cleaned_data.get("country")
-        min_price = form.cleaned_data.get("min_price")
-        max_price = form.cleaned_data.get("max_price")
-
-        if manufacturer:
-            products = products.filter(manufacturer__icontains=manufacturer)
-        if country:
-            products = products.filter(country__icontains=country)
-        if min_price is not None:
-            products = products.filter(price__gte=min_price)
-        if max_price is not None:
-            products = products.filter(price__lte=max_price)
-
-    # Завжди повертаємо render
-    return render(request, "shop/product_list.html", {
-        "form": form,
-        "products": products
-    })
-
+def all_categories(request):
+    categories = Category.objects.all()
+    return render(request, 'shop/all_categories.html', {'categories': categories})
