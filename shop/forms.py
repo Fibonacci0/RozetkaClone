@@ -52,8 +52,8 @@ class ProfileEditForm(UserChangeForm):
 class DynamicProductFilterForm(forms.Form):
     manufacturer = forms.CharField(required=False, label="Виробник")
     country = forms.CharField(required=False, label="Країна")
-    min_price = forms.DecimalField(required=False, decimal_places=2, max_digits=10, label="Мін. ціна")
-    max_price = forms.DecimalField(required=False, decimal_places=2, max_digits=10, label="Макс. ціна")
+    min_price = forms.FloatField(required=False, label="Мін. ціна")
+    max_price = forms.FloatField(required=False, label="Макс. ціна")
     available = forms.BooleanField(required=False, label="В наявності")
 
     def __init__(self, category=None, subcategory=None, *args, **kwargs):

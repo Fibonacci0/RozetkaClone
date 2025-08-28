@@ -71,7 +71,7 @@
     <!-- -------------------- Список товарів -------------------- -->
     <div class="md:col-span-3">
         <h2 class="text-2xl font-bold mb-6">
-            {{ category.name if category else "Усі товари" }}
+            {% if category %}{{category.name}}{% else %} Усі товари {% endif %}
         </h2>
 
         {% if products %}
