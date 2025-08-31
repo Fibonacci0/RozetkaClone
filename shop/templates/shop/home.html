@@ -5,131 +5,216 @@
 
 {% block content %}
 
-<!-- Page Layout: Categories + Main Content -->
 <div class="flex w-full">
 
-    <!-- Category List -->
-    <div class="w-1/5 min-w-[160px] pl-16 py-6 border-r border-gray-200">
-        <!-- <h2 class="text-lg font-bold mb-4">Категорії</h2> -->
-        <div>
-            <div class="">
-                <ul class="text-left space-y-2 pl-16">
-                {% for category in categories %}
-                    {% if category.slug %}
-                    <li>
-                        <a href="{% url 'home' category.slug %}" class="text-base text-gray-700 hover:text-orange-600">
-                    {% if category.icon %}
-                    <i class="fa-solid {{ category.icon }} text-lg"></i>
-                    {% else %}
-                    <i class="fa-solid fa-box"></i>
+    <!-- Ліва панель: категорії або фільтри -->
+    <div class="w-1/5 min-w-[160px] pl-6 py-6 border-r border-gray-200">
+
+        {% if not current_category %}
+            <!-- Список категорій -->
+            <ul class="text-left space-y-2 pl-4">
+                {% if categories %}
+                    {% for category in categories %}
+                        {% if category.slug %}
+                            <li>
+                                <a href="{% url 'category_detail' category.slug %}" class="text-base text-gray-700 hover:text-orange-600">
+                                    {% if category.icon %}
+                                        <i class="fa-solid {{ category.icon }} text-lg"></i>
+                                    {% else %}
+                                        <i class="fa-solid fa-box"></i>
+                                    {% endif %}
+                                    {{ category.name }}
+                                </a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                {% else %}
+                    <li class="text-gray-400">Категорій немає.</li>
                 {% endif %}
-                {{ category.name }}
-            </a>
-        </li>
-    {% endif %}
-{% empty %}
-    <li class="text-gray-400">Категорій немає.</li>
-{% endfor %}
-
-    </ul>
-            </div>
-
-            <div class="text-left space-y-2 pl-16 mt-6">
-                <a href="#" class="flex items-center text-base text-orange-600 hover:text-gray-700">
-                    <i class="fas fa-percent mr-2"></i> Знижки до 50%
-                </a>
-    </a>
-    <a href="#" class="flex items-center text-base text-gray-700 hover:text-orange-600">
-        <i class="fas fa-question-circle mr-2"></i> Довідковий центр
-    </a>
-</div>
-
             </ul>
-        </div>
+        {% else %}
+            <!-- Фільтри для обраної категорії -->
+            <form method="get" class="filters-sidebar mt-4">
+                <h3 class="font-bold mb-2">Фільтри</h3>
+
+                <!-- Бренд -->
+                <div class="mb-4">
+                    <h4 class="text-sm font-semibold">Бренд</h4>
+                    {% for brand in brands %}
+                        <label class="flex items-center text-sm">
+                            <input type="checkbox" name="brand" value="{{ brand }}"
+                                   {% if brand in selected_brands or brand in default_brands %}checked{% endif %}
+                                   class="mr-2">
+                            {{ brand }}
+                        </label>
+                    {% empty %}
+                        <p class="text-gray-400 text-sm">Брендів немає.</p>
+                    {% endfor %}
+                </div>
+
+                <!-- Країна -->
+                <div class="mb-4">
+                    <h4 class="text-sm font-semibold">Країна</h4>
+                    {% for country in countries %}
+                        <label class="flex items-center text-sm">
+                            <input type="checkbox" name="country" value="{{ country }}"
+                                   {% if country in selected_countries or country in default_countries %}checked{% endif %}
+                                   class="mr-2">
+                            {{ country }}
+                        </label>
+                    {% empty %}
+                        <p class="text-gray-400 text-sm">Країн немає.</p>
+                    {% endfor %}
+                </div>
+
+                <!-- Продавець -->
+                <div class="mb-4">
+                    <h4 class="text-sm font-semibold">Продавець</h4>
+                    {% for seller in sellers %}
+                        <label class="flex items-center text-sm">
+                            <input type="checkbox" name="seller" value="{{ seller }}"
+                                   {% if seller in selected_sellers or seller in default_sellers %}checked{% endif %}
+                                   class="mr-2">
+                            {{ seller }}
+                        </label>
+                    {% empty %}
+                        <p class="text-gray-400 text-sm">Продавців немає.</p>
+                    {% endfor %}
+                </div>
+
+                <!-- Ціна -->
+                <div class="mb-4">
+                    <h4 class="text-sm font-semibold">Ціна</h4>
+                    
+                    <!-- Input для мінімальної і максимальної ціни -->
+                    <div class="flex space-x-2 mb-2">
+                        <input type="number" id="min_price_input" name="min_price" min="0" max="100000"
+                               value="{{ min_price_selected|default:0 }}" 
+                               class="w-1/2 px-2 py-1 border rounded text-sm">
+                        <input type="number" id="max_price_input" name="max_price" min="0" max="100000"
+                               value="{{ max_price_selected|default:100000 }}" 
+                               class="w-1/2 px-2 py-1 border rounded text-sm">
+                    </div>
+
+                    <!-- Повзунок для максимальної ціни -->
+                    <input type="range"
+                           id="price_slider"
+                           min="0"
+                           max="100000"
+                           step="100"
+                           value="{{ max_price_selected|default:100000 }}"
+                           oninput="document.getElementById('max_price_input').value = this.value"
+                           class="w-full h-1.5 rounded-lg accent-orange-500">
+                </div>
+
+                <button type="submit" class="mt-2 px-4 py-1 bg-orange-500 text-white rounded hover:bg-orange-600">Застосувати</button>
+            </form>
+        {% endif %}
     </div>
 
-    <!-- Right Side: Promo + Products -->
+    <!-- Права панель: промо та продукти -->
     <div class="flex-1 px-4">
 
-        <!-- Promo Carousel -->
+        <!-- Промо карусель -->
         <div class="border-b border-gray-200 pb-4 mb-6">
             {% include 'shop/_promo_carousel.html' %}
         </div>
 
-        <!-- Products Header -->
+        <!-- Продукти -->
         <h2 class="text-2xl font-bold mb-6 mt-6">Продукти</h2>
-
-        <!-- Product List -->
         <div class="overflow-x-auto">
-            <div class="flex space-x-4 pb-6">
-                {% for product in products %}
-                <div
-                    class="min-w-[200px] max-w-[220px] bg-white rounded-2xl p-4 shadow-md hover:shadow-xl transition-all duration-300 ease-in-out transform hover:-translate-y-1 flex-shrink-0 relative">
+            <div class="flex flex-wrap gap-4 pb-6">
+                {% if products %}
+                    {% for product in products %}
+                        {% if product.price >= min_price_selected|default:0 %}
+                            <div class="w-[200px] bg-white rounded-2xl p-4 shadow-md hover:shadow-xl transition-all duration-300 ease-in-out transform hover:-translate-y-1 relative">
 
-                    <!-- Favorite Icon -->
-                    <div class="absolute top-2 right-2 text-orange-500 hover:text-orange-600 cursor-pointer">
-                        <i class="far fa-heart"></i>
-                    </div>
+                                <!-- Favorite Icon -->
+                                <div class="absolute top-2 right-2 text-orange-500 hover:text-orange-600 cursor-pointer">
+                                    <i class="far fa-heart"></i>
+                                </div>
 
-                    <!-- Product Image -->
-                    <a href="{% url 'product_detail' product.id %}">
-                        <img src="{{ product.get_image }}" alt="{{ product.name }}"
-                            class="w-full h-36 object-contain mb-2 rounded" loading="lazy">
-                    </a>
+                                <!-- Product Image -->
+                                <a href="{% url 'product_detail' product.id %}">
+                                    <img src="{{ product.get_image }}" alt="{{ product.name }}" class="w-full h-36 object-contain mb-2 rounded" loading="lazy">
+                                </a>
 
-                    <!-- Product Name -->
-                    <p class="text-sm text-gray-700 text-left leading-snug break-words max-w-full">
-                        <a href="{% url 'product_detail' product.id %}">
-                            {{ product.name|truncatechars:40 }}
-                        </a>
-                    </p>
+                                <!-- Product Name -->
+                                <p class="text-sm text-gray-700 text-left leading-snug break-words max-w-full">
+                                    <a href="{% url 'product_detail' product.id %}">
+                                        {{ product.name|truncatechars:40 }}
+                                    </a>
+                                </p>
 
-                    <!-- Brand & Size -->
-                    <p class="text-xs text-center text-gray-500 mt-1">
-                        {{ product.brand|default:"" }} {{ product.size|default:"" }}
-                    </p>
+                                <!-- Brand & Size -->
+                                <p class="text-xs text-center text-gray-500 mt-1">
+                                    {{ product.brand|default:"" }} {{ product.size|default:"" }}
+                                </p>
 
-                    <!-- Rating -->
-                    <div class="flex items-center text-yellow-400 text-xs mt-1">
-                        {% with rating=product.rating|default:0 %}
-                        {% with full_stars=rating|floatformat:0 %}
-                        {% for i in "12345" %}
-                        {% if forloop.counter <= full_stars %} <i class="fa-solid fa-star mr-0.5"></i>
-                            {% else %}
-                            <i class="fa-regular fa-star mr-0.5"></i>
-                            {% endif %}
-                            {% endfor %}
-                            {% endwith %}
-                            <span class="text-gray-800 ml-1">{{ rating|floatformat:1 }}</span>
-                            <span class="text-gray-500 ml-2">({{ product.review_count|default:"0" }} відгуків)</span>
-                            {% endwith %}
-                    </div>
+                                <!-- Rating -->
+                                <div class="flex items-center text-yellow-400 text-xs mt-1">
+                                    {% with rating=product.rating|default:0 %}
+                                        {% with full_stars=rating|floatformat:0 %}
+                                            {% for i in "12345" %}
+                                                {% if forloop.counter <= full_stars %}
+                                                    <i class="fa-solid fa-star mr-0.5"></i>
+                                                {% else %}
+                                                    <i class="fa-regular fa-star mr-0.5"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                        {% endwith %}
+                                        <span class="text-gray-800 ml-1">{{ rating|floatformat:1 }}</span>
+                                        <span class="text-gray-500 ml-2">({{ product.review_count|default:"0" }} відгуків)</span>
+                                    {% endwith %}
+                                </div>
 
-                    <!-- Old Price -->
-                    <p class="text-sm text-left line-through text-gray-400 mt-2">
-                        {{ product.old_price|default:"" }}
-                    </p>
+                                <!-- Old Price -->
+                                <p class="text-sm text-left line-through text-gray-400 mt-2">
+                                    {{ product.old_price|default:"" }}
+                                </p>
 
-                    <!-- Discount Price -->
-                    <p class="text-lg font-bold text-left text-orange-600">
-                        {{ product.price }} ₴
-                    </p>
+                                <!-- Discount Price -->
+                                <p class="text-lg font-bold text-left text-orange-600">
+                                    {{ product.price }} ₴
+                                </p>
 
-                    <!-- Cart Icon -->
-                    <div class="absolute bottom-2 right-2">
-                        <button class="text-gray-700 hover:text-green-600 text-lg">
-                            <i data-product-id="{{ product.id }}" data-product-name="{{ product.name }}"
-                                data-product-price="{{ product.price }}" data-product-image="{{ product.get_image }}"
-                                data-added="false" class="fas fa-shopping-basket"></i>
-                        </button>
-                    </div>
-                </div>
-                {% empty %}
-                <p class="text-gray-500">Немає продуктів для рекомендації.</p>
-                {% endfor %}
+                                <!-- Cart Icon -->
+                                <div class="absolute bottom-2 right-2">
+                                    <button class="text-gray-700 hover:text-green-600 text-lg">
+                                        <i data-product-id="{{ product.id }}" data-product-name="{{ product.name }}" data-product-price="{{ product.price }}" data-product-image="{{ product.get_image }}" data-added="false" class="fas fa-shopping-basket"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                {% else %}
+                    <p class="text-gray-500">Товари не знайдено.</p>
+                {% endif %}
             </div>
         </div>
+
     </div>
 </div>
+
+<script>
+    // Синхронізація мін/макс полів та повзунка
+    const minInput = document.getElementById('min_price_input');
+    const maxInput = document.getElementById('max_price_input');
+    const slider = document.getElementById('price_slider');
+
+    minInput.addEventListener('input', () => {
+        let minVal = parseInt(minInput.value) || 0;
+        if(minVal > parseInt(maxInput.value)) minVal = parseInt(maxInput.value);
+        minInput.value = minVal;
+        slider.min = minVal;
+    });
+
+    maxInput.addEventListener('input', () => {
+        let maxVal = parseInt(maxInput.value) || 100000;
+        if(maxVal < parseInt(minInput.value)) maxVal = parseInt(minInput.value);
+        maxInput.value = maxVal;
+        slider.value = maxVal;
+    });
+</script>
 
 {% endblock %}

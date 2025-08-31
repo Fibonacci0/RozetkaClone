@@ -41,18 +41,33 @@ class Product(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
 
-    # Optional image upload
     image = models.ImageField(upload_to='products/', blank=True, null=True)
-
-    # Optional external image URL
     image_url = models.URLField(
         max_length=500,
         blank=True,
         default='https://www.shutterstock.com/image-vector/missing-picture-page-website-design-600nw-1552421075.jpg'
     )
-    categories = models.ManyToManyField(Category, related_name='products')
-    slug = models.SlugField(null=True,max_length=100)  # new
+
+    categories = models.ManyToManyField("Category", related_name='products')
+    slug = models.SlugField(null=True, max_length=100)
+
     price = models.DecimalField(max_digits=10, decimal_places=2)
+    brand = models.CharField(max_length=100, blank=True, null=True)   
+    country = models.CharField(max_length=100, blank=True, null=True) 
+    seller = models.CharField(max_length=100, blank=True, null=True)  
+
+    # Нове поле для розміру
+    SIZE_CHOICES = [
+        ('XS', 'XS'),
+        ('S', 'S'),
+        ('M', 'M'),
+        ('L', 'L'),
+        ('XL', 'XL'),
+        ('XXL', 'XXL'),
+    ]
+    size = models.CharField(max_length=3, choices=SIZE_CHOICES, blank=True, null=True)
+
+    is_popular = models.BooleanField(default=False)
     available = models.BooleanField(default=True)
     created_at = models.DateTimeField(default=timezone.now)
     rating = models.FloatField(default=0.0)
@@ -65,6 +80,8 @@ class Product(models.Model):
 
     def __str__(self):
         return self.name
+
+
 
     
 class Promo(models.Model):

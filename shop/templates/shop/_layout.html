@@ -106,14 +106,15 @@
         <i class="fa-solid fa-xmark"></i>
       </button>
     </div>
-    <div class="p-4 space-y-2">
-      {% for category in categories %}
-        <a href="{% url 'home' category.slug %}" 
-           class="block px-4 py-2 rounded-lg hover:bg-gray-100 text-gray-700 font-medium">
-          {{ category.name }}
-        </a>
-      {% endfor %}
-    </div>
+<div class="p-4 space-y-2">
+  {% for category in categories %}
+    <a href="{% url 'category_detail' category.slug %}" 
+       class="block px-4 py-2 rounded-lg hover:bg-gray-100 text-gray-700 font-medium">
+      {{ category.name }}
+    </a>
+  {% endfor %}
+</div>
+
   </div>
 </div>
     <!-- Sidebar Backdrop -->
