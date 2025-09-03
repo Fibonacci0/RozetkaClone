@@ -6,6 +6,8 @@ from django.db.models import Q, Max  # <- додав сюди Max
 from django.db.models import Min, Max
 from .models import Category, Product, Promo, Review
 from .forms import ProfileEditForm, UserRegisterForm, ReviewForm, LoginForm
+from django.conf import settings
+from django.http import HttpResponseRedirect
 
 
 def home(request):
@@ -249,6 +251,13 @@ def delete_review(request, review_id):
     return redirect('product_detail', product_id=product_id)
 
 
+def pay(request):
+    jar_url = getattr(
+        settings,
+        'MONOBANK_JAR_URL',
+        'https://send.monobank.ua/jar/7Fn8uoXAXJ'
+    )
+    return HttpResponseRedirect(jar_url)
 
 
 
