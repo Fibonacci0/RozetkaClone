@@ -57,7 +57,7 @@
     {% if user.is_authenticated and user_review_exists %}
     <button class="bg-gray-400 text-white px-4 py-2 rounded-md cursor-not-allowed">Ви вже залишили відгук</button>
     {% else %}
-    <a href="{% url 'create_review' product.id %}"
+    <a href="{% url 'add_review' product.id %}"
       class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md">
       Додати відгук
     </a>
