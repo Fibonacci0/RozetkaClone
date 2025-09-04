@@ -13,7 +13,8 @@ class ProductAdmin(admin.ModelAdmin):
     readonly_fields = ('created_at', 'preview_image')
     fields = (
         'name', 'description', 'image', 'image_url', 'categories', 'slug',
-        'price', 'available', 'rating', 'review_count', 'created_at', 'preview_image'
+        'price', 'available', 'rating', 'review_count', 'created_at', 'preview_image',
+        'country', 'brand', 'seller'
     )
 
     def preview_image(self, obj):
