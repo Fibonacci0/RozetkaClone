@@ -13,6 +13,10 @@ from django.http import HttpResponseRedirect
 def home(request):
     categories = Category.objects.all()
     products = Product.objects.all()
+    
+    # promo
+    promos = Promo.objects.filter(display=True).order_by('-created_at')
+
 
     category_slug = request.GET.get('category')
     current_category = None
@@ -61,6 +65,7 @@ def home(request):
         'brands': Product.objects.values_list('brand', flat=True).distinct(),
         'countries': Product.objects.values_list('country', flat=True).distinct(),
         'sellers': Product.objects.values_list('seller', flat=True).distinct(),
+        'promos': promos,
         'selected_brands': selected_brands,
         'selected_countries': selected_countries,
         'selected_sellers': selected_sellers,
@@ -194,6 +199,7 @@ def profile_edit_view(request):
 
 # --- Деталі продукту ---
 def product_detail(request, product_id):
+    categories = Category.objects.all()
     product = get_object_or_404(Product, id=product_id)
     reviews = product.reviews.select_related('user').order_by('-created_at')
     user_review_exists = False
@@ -208,7 +214,8 @@ def product_detail(request, product_id):
     return render(request, 'shop/product_detail.html', {
         'product': product,
         'reviews': reviews,
-        'user_review_exists': user_review_exists
+        'user_review_exists': user_review_exists,
+        'categories': categories
     })
 
 # --- Форма відгуку ---

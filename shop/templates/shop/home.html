@@ -8,7 +8,7 @@
 <div class="flex w-full">
 
     <!-- Ліва панель: категорії або фільтри -->
-    <div class="w-1/5 min-w-[160px] pl-6 py-6 border-r border-gray-200">
+    <div class="w-1/5 min-w-[160px] p-6 border-r border-gray-200">
 
         {% if not current_category %}
             <!-- Список категорій -->
@@ -116,12 +116,12 @@
     <div class="flex-1 px-4">
 
         <!-- Промо карусель -->
-        <div class="border-b border-gray-200 pb-4 mb-6">
+        <div class="pt-5 border-b border-gray-200  pb-4 mb-6">
             {% include 'shop/_promo_carousel.html' %}
         </div>
 
         <!-- Продукти -->
-        <h2 class="text-2xl font-bold mb-6 mt-6">Продукти</h2>
+        <h2 class="text-2xl font-bold mx-6 mb-6 mt-6">Популярні товари</h2>
         <div class="overflow-x-auto">
             <div class="flex flex-wrap gap-4 pb-6">
                 {% if products %}

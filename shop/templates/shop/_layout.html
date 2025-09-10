@@ -69,7 +69,6 @@
 
 <body class="min-h-screen flex flex-col bg-gray-50">
     <!-- Cart Modal -->
-    <!-- Cart Modal -->
     <div id="cartModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
         <div
             class="bg-white w-full max-w-xl max-h-[80vh] p-6 rounded-xl relative shadow-2xl flex flex-col text-left overflow-y-auto">
@@ -87,7 +86,7 @@
                 <!-- Порожній кошик -->
                 <div id="emptyCartMessage" class="absolute inset-0 flex flex-col items-center justify-center text-gray-500">
                     <img src="{% static 'images/Frame 167.png' %}" alt="Cart Icon"
-                        class="mx-auto mb-4 w-90 h-80 object-contain" />
+                        class="mx-auto mb-4 w-65 h-65 object-contain" />
                 </div>
             </div>
     
@@ -215,43 +214,51 @@
 
 <header class="bg-black shadow-md border-b border-gray-200">
 <!-- Top Row -->
-<div class="max-w-6xl container mx-auto flex items-center justify-between mb-6 px-6 py-4 bg-white rounded-b-2xl shadow-lg shadow-green-800/80">
+<div class="max-w-6xl container mx-auto flex items-center bg-white rounded-b-[35px] shadow-lg shadow-green-800/80 px-6 mb-6 h-16">
+
   <!-- Logo -->
-  <a href="{% url 'home' %}" class="flex items-center space-x-2">
-    <img src="{% static 'images/logo.svg' %}" alt="Logo" class="h-8 w-auto" />
+  <a href="{% url 'home' %}" class="flex items-center pl-14 space-x-2 h-full">
+    <img src="{% static 'images/logo.svg' %}" alt="Logo" class="h-10 w-auto" />
   </a>
 
   <!-- Navigation -->
-  <nav class="flex flex-1 justify-evenly items-center divide-x divide-gray-300 ml-8">
-    <a href="#" class="flex items-center space-x-1 px-4 text-gray-700 hover:text-green-600">
-      <i class="fa-regular fa-paper-plane"></i>
-      <span>Чат з TinGo</span>
-    </a>
+  <nav class="flex flex-1 ml-10 h-full">
+    <div class="flex flex-1 items-stretch text-gray-700 divide-x divide-gray-300 h-full">
 
-    <!-- Catalog Modal Trigger -->
-    <button onclick="openCatalogModal()" class="flex items-center space-x-1 px-4 text-gray-700 hover:text-green-600">
-      <i class="fa-solid fa-table-cells-large"></i>
-      <span>Каталог</span>
-    </button>
+      <a href="#" class="flex-1 flex items-center justify-center gap-2 hover:text-green-600">
+        <i class="fa-regular fa-paper-plane"></i>
+        <span>Чат з TinGo</span>
+      </a>
 
-    {% if user.is_authenticated %}
-    <a href="#" class="flex items-center space-x-1 px-4 text-gray-700 hover:text-green-600">
-      <i class="fa-solid fa-bag-shopping"></i>
-      <span>Замовлення</span>
-    </a>
-    {% endif %}
+      <button onclick="openCatalogModal()" class="flex-1 flex items-center justify-center gap-2 hover:text-green-600">
+        <i class="fa-solid fa-table-cells-large"></i>
+        <span>Каталог</span>
+      </button>
 
-    <a href="{% url 'profile' %}" class="flex items-center space-x-1 px-4 text-gray-700 hover:text-green-600">
-      <i class="fa-regular fa-user"></i>
-      <span>Кабінет</span>
-    </a>
+      {% if user.is_authenticated %}
+      <a href="#" class="flex-1 flex items-center justify-center gap-2 hover:text-green-600">
+        <i class="fa-solid fa-bag-shopping"></i>
+        <span>Замовлення</span>
+      </a>
+      {% endif %}
 
-    <!-- Cart Button -->
-    <button id="open-cart-modal" class="flex items-center space-x-1 px-4 text-gray-700 hover:text-green-600 focus:outline-none">
-      <i class="fa-solid fa-basket-shopping"></i>
-      <span>Кошик</span>
-    </button>
+      <a href="{% url 'profile' %}" class="flex-1 flex items-center justify-center gap-2 hover:text-green-600">
+        <i class="fa-regular fa-user"></i>
+        <span>Кабінет</span>
+      </a>
+
+      <button id="open-cart-modal" class="flex-1 flex items-center justify-center gap-2 hover:text-green-600 focus:outline-none">
+        <i class="fa-solid fa-basket-shopping"></i>
+        <span>Кошик</span>
+      </button>
+
+    </div>
   </nav>
+</div>
+
+
+
+
 </div>
 
 
@@ -281,19 +288,21 @@
 
     <!-- Icons -->
     <button class="text-white hover:text-green-600">
-      <i class="fa-regular fa-heart"></i>
+      <i class="fa-regular text-xl fa-heart"></i>
     </button>
     <button class="text-white hover:text-green-600">
-      <i class="fa-regular fa-bell"></i>
+      <i class="fa-regular text-xl fa-bell"></i>
     </button>
   </div>
 </header>
 
 
 
-    <main class="flex-grow">
+    <main class="flex-grow px-10">
+            <div class="mx-auto px-4">
         {% block content %}
         {% endblock %}
+            </div>
     </main>
     <!--Footer -->
     <footer class="bg-gray-900 text-white mt-auto">
