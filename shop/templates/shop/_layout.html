@@ -101,17 +101,14 @@
                 <input id="promoInput" type="text" placeholder="Промокод" class="border rounded px-2 py-1 flex-1">
                 <button id="applyPromoBtn" class="bg-gray-200 px-3 py-1 rounded">OK</button>
             </div>
-    
-            <!-- Footer: total + checkout -->
-            <div class="mt-4 border-t pt-4 flex items-center justify-between">
-                <div class="text-lg">
-                    Разом: <span id="cartTotal" class="font-bold">0</span> ₴
-                </div>
-                <a id="checkoutButton" href="{% url 'pay' %}" target="_blank"
-                    class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
-                    Оформити та оплатити
-                </a>
-            </div>
+            
+            <a id="checkoutLink" href="{% url 'payment_page' %}">
+                <button id="checkoutBtn"
+                    class="bg-green-600 text-white text-lg font-semibold px-6 py-3 rounded-xl shadow hover:bg-green-700 transition">
+                    Придбати
+                </button>
+            </a>
+
         </div>
     </div>
 

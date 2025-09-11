@@ -30,10 +30,14 @@
       </div>
 
       <!-- Кнопка купівлі -->
-      <button
-        class="bg-green-600 text-white text-lg font-semibold px-6 py-3 rounded-xl shadow hover:bg-green-700 transition">
-        Купити
-      </button>
+      {% if cart %}
+      <a href="{% url 'payment_page' %}">
+        <button class="bg-green-600 text-white ...">Купити</button>
+      </a>
+      {% else %}
+      <button class="bg-gray-400 text-white cursor-not-allowed" disabled>Купити</button>
+      {% endif %}
+
     </div>
   </div>
 
