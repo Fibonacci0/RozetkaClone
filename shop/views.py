@@ -78,8 +78,12 @@ def home(request):
 
 
 def category_detail(request, slug):
+    categories = Category.objects.all()
     category = get_object_or_404(Category, slug=slug)
     products = Product.objects.filter(categories=category)
+
+    # promo
+    promos = Promo.objects.filter(display=True).order_by('-created_at')
 
     selected_brands = request.GET.getlist('brand')
     selected_countries = request.GET.getlist('country')
@@ -111,6 +115,7 @@ def category_detail(request, slug):
     products = products.filter(price__gte=min_price_selected, price__lte=max_price_selected)
 
     context = {
+        'categories': categories,
         'current_category': category,
         'products': products,
         'brands': Product.objects.values_list('brand', flat=True).distinct(),
@@ -123,6 +128,7 @@ def category_detail(request, slug):
         'max_price_selected': max_price_selected,
         'min_price': 0,
         'max_price': 100000,
+        'promos': promos,
     }
     return render(request, 'shop/home.html', context)
 
