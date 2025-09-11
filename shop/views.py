@@ -196,7 +196,16 @@ def user_logout(request):
 # --- Профіль ---
 @login_required
 def profile_view(request):
-    return render(request, 'shop/profile.html')
+    categories = Category.objects.all()
+    products = Product.objects.all()
+    
+    
+    favorites = Favorite.objects.filter(user=request.user).select_related("product")
+    return render(request, "shop/profile.html", {
+        "favorites": favorites,
+        "categories": categories,
+        "products": products,
+    })
 
 @login_required
 def profile_edit_view(request):
