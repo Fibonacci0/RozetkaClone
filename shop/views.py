@@ -4,11 +4,10 @@ from django.contrib.auth import login, logout
 from django.contrib import messages
 from django.db.models import Q, Max  # <- додав сюди Max
 from django.db.models import Min, Max
-from .models import Category, Product, Promo, Review
+from .models import Category, Favorite, Product, Promo, Review
 from .forms import ProfileEditForm, UserRegisterForm, ReviewForm, LoginForm
 from django.conf import settings
-from django.http import HttpResponseRedirect
-
+from django.http import HttpResponseRedirect, JsonResponse
 
 def home(request):
     categories = Category.objects.all()
@@ -25,6 +24,13 @@ def home(request):
         if current_category:
             products = products.filter(categories=current_category)
 
+    favorited_ids = set()
+    if request.user.is_authenticated:
+        favorited_ids = set(
+            Favorite.objects.filter(user=request.user)
+            .values_list("product_id", flat=True)
+        )
+        
     # Фільтри
     selected_brands = request.GET.getlist('brand')
     selected_countries = request.GET.getlist('country')
@@ -73,6 +79,7 @@ def home(request):
         'max_price_selected': max_price_selected,
         'min_price': 0,
         'max_price': 100000,
+        'favorited_ids': favorited_ids,
     }
     return render(request, 'shop/home.html', context)
 
@@ -123,12 +130,14 @@ def category_detail(request, slug):
         'max_price_selected': max_price_selected,
         'min_price': 0,
         'max_price': 100000,
+        'categories': Category.objects.all(),
     }
     return render(request, 'shop/home.html', context)
 
 
 # --- Пошук продуктів ---
 def search_products(request):
+    categories = Category.objects.all()
     query = request.GET.get('q', '')
     products = Product.objects.filter(
         Q(name__icontains=query) | Q(description__icontains=query),
@@ -136,7 +145,8 @@ def search_products(request):
     )
     return render(request, 'shop/search_results.html', {
         'products': products,
-        'query': query
+        'query': query,
+        'categories': categories,
     })
 
 # --- Всі категорії ---
@@ -173,7 +183,10 @@ def user_login(request):
     else:
         form = LoginForm()
 
-    return render(request, 'shop/login.html', {'form': form})
+    return render(request, 'shop/login.html', {
+        'form': form,
+        'categories': Category.objects.all()
+    })
 
 # --- Логаут ---
 def user_logout(request):
@@ -197,14 +210,45 @@ def profile_edit_view(request):
     
     return render(request, 'shop/profile_edit.html', {'form': form})
 
+@login_required
+def toggle_favorite(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+    favorite, created = Favorite.objects.get_or_create(user=request.user, product=product)
+
+    if not created:
+        favorite.delete()
+        return JsonResponse({"favorited": False})
+    else:
+        return JsonResponse({"favorited": True})
+    
+@login_required
+def product_list(request):
+    products = Product.objects.all()
+
+    # which products are favorited by this user?
+    favorited_ids = set(
+        Favorite.objects.filter(user=request.user).values_list("product_id", flat=True)
+    )
+
+    return render(request, "shop/product_list.html", {
+        "products": products,
+        "favorited_ids": favorited_ids,
+    })
 # --- Деталі продукту ---
+@login_required
 def product_detail(request, product_id):
     categories = Category.objects.all()
     product = get_object_or_404(Product, id=product_id)
     reviews = product.reviews.select_related('user').order_by('-created_at')
+
     user_review_exists = False
-    
+    is_favorited = False
+
     if request.user.is_authenticated:
+        # check if current user liked it
+        is_favorited = Favorite.objects.filter(user=request.user, product=product).exists()
+
+        # reviews logic
         user_review = reviews.filter(user=request.user).first()
         other_reviews = reviews.exclude(user=request.user)
         if user_review:
@@ -215,8 +259,10 @@ def product_detail(request, product_id):
         'product': product,
         'reviews': reviews,
         'user_review_exists': user_review_exists,
-        'categories': categories
+        'categories': categories,
+        'is_favorited': is_favorited,
     })
+
 
 # --- Форма відгуку ---
 @login_required
