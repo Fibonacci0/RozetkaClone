@@ -11,9 +11,13 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import environ
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+env = environ.Env()
+environ.Env.read_env(BASE_DIR / ".env") 
 
 APP_DIRS = True
 # Quick-start development settings - unsuitable for production
@@ -32,7 +36,13 @@ LOGIN_URL = "login"
 LOGOUT_URL = "logout"
 LOGOUT_REDIRECT_URL = "."
 LOGIN_REDIRECT_URL = "profile"
+AUTH_USER_MODEL = 'shop.User'
 
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',    # username + password
+    'shop.backends.EmailBackend',                   # email    + password
+
+]
 
 
 # Application definition
@@ -86,6 +96,18 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+VONAGE_API_KEY = env('VONAGE_API_KEY')
+VONAGE_API_SECRET = env('VONAGE_API_SECRET')
+VONAGE_SENDER_ID = env('VONAGE_SENDER_ID')
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = env('EMAIL_HOST_USER')
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL')
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
 
 
 # Password validation

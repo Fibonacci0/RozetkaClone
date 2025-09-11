@@ -1,0 +1,136 @@
+{% extends "shop/_layout.html" %}
+
+{% block content %}
+<div class="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50">
+
+    <div class="bg-white rounded-2xl shadow-[3px_3px_6px_rgb(251,146,60)] w-full max-w-md">
+
+        <div class="flex justify-between items-center p-6">
+            <h1 class="text-3xl font-medium">Вхід</h2>
+                <button class="text-3xl" onclick="window.location.href='/'">&times;</button>
+        </div>
+
+        <hr class="border-t-1 border-orange-500 w-full">
+
+        <div class="m-5">
+            <p class="font-semibold text-lg">Код підтвердження</p>
+            <p>
+                На <span class="font-semibold">{{ phone_number }}</span> був надісланий код для підтвердження
+            </p>
+        </div>
+
+
+        <form method="post" class="mx-7 space-y-4">
+            {% csrf_token %}
+
+            {% for field in form %}
+            <div>
+                {{ field }}
+                {% if field.errors %}
+                <p class="text-red-600 text-sm">{{ field.errors|striptags }}</p>
+                {% endif %}
+            </div>
+            {% endfor %}
+
+            <div class="underline text-sm">
+                <a href="#" target="_blank">
+                    Не отримали код підтвердження?
+                </a>
+            </div>
+
+
+            <button type="submit"
+                class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-3xl transition duration-200">
+                Підтвердити
+            </button>
+        </form>
+
+
+        <div id="resend-container" class="text-center text-gray-600 text-lg m-3"></div>
+
+        <div class="flex justify-center my-4">
+            <button type="button" onclick="window.history.back()"
+                class="text-orange-400 hover:text-orange-600 font-semibold text-lg transition duration-200">
+                Назад
+            </button>
+        </div>
+
+
+
+    </div>
+</div>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const container = document.getElementById("resend-container");
+        let expiresAt = new Date("{{ otp_expires_at|default:'' }}");
+
+        function renderTimer(diff) {
+            let minutes = Math.floor(diff / 60);
+            let seconds = diff % 60;
+            return `Відправити код повторно: <b>через ${minutes}:${seconds.toString().padStart(2, "0")}</b>`;
+        }
+
+        function startTimer() {
+            const interval = setInterval(() => {
+                const now = new Date();
+                let diff = Math.floor((expiresAt - now) / 1000);
+
+                if (diff <= 0) {
+                    clearInterval(interval);
+                    renderButton();
+                } else {
+                    container.innerHTML = renderTimer(diff);
+                }
+            }, 1000);
+        }
+
+        function renderButton() {
+            container.innerHTML = `
+                <button id="resend-btn" class="text-orange-600 font-semibold hover:underline">
+                    Відправити код повторно
+                </button>
+            `;
+
+            const btn = document.getElementById("resend-btn");
+            btn.addEventListener("click", () => {
+                btn.disabled = true;
+                btn.textContent = "Надсилаємо...";
+
+                fetch("{% url 'resend_sms' %}", {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": "{{ csrf_token }}",
+                    },
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success && data.expires_at) {
+                            expiresAt = new Date(data.expires_at);
+
+                            container.innerHTML = renderTimer(
+                                Math.floor((expiresAt - new Date()) / 1000)
+                            );
+                            startTimer();
+                        } else {
+                            btn.disabled = false;
+                            btn.textContent = "Відправити код повторно";
+                        }
+                    })
+                    .catch(() => {
+                        btn.disabled = false;
+                        btn.textContent = "Відправити код повторно";
+                    });
+            });
+        }
+
+        if (expiresAt && expiresAt > new Date()) {
+            startTimer();
+        } else {
+            renderButton();
+        }
+    });
+</script>
+
+
+
+{% endblock %}

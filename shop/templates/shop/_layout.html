@@ -75,7 +75,7 @@
                 <i class="fas fa-times text-2xl"></i>
             </button>
         </div>
-
+<!--  -->
         <!-- Auth Prompt -->
         <div class="p-4">
             {% if user.is_authenticated %}
@@ -313,13 +313,16 @@
                 }
             });
         });
-
+// 
         document.addEventListener('DOMContentLoaded', () => {
             const cartModal = document.getElementById('cartModal');
             const closeCartModalBtn = document.getElementById('closeCartModal');
             const openCartModalBtn = document.getElementById('open-cart-modal');
             const cartItemsContainer = document.getElementById('cartItemsContainer');
             const emptyCartMessage = document.getElementById('emptyCartMessage');
+
+            const openAuthmodal = document.getElementById('');
+            
 
             let cart = new Map();
 
