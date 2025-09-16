@@ -152,8 +152,3 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-MONOBANK_JAR_URL = os.environ.get(
-    'MONOBANK_JAR_URL',
-    'https://send.monobank.ua/jar/7Fn8uoXAXJ'
-)

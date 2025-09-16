@@ -1,6 +1,5 @@
 from django.urls import path
-from . import views
-
+from . import views 
 urlpatterns = [
     path('', views.home, name='home'),  # Головна сторінка
     path('category/<slug:slug>/', views.category_detail, name='category_detail'),
@@ -15,7 +14,7 @@ urlpatterns = [
     path('review/add/<int:product_id>/', views.review_form, name='add_review'),
     path('review/edit/<int:review_id>/', views.review_form, name='edit_review'),
     path('review/delete/<int:review_id>/', views.delete_review, name='delete_review'),
-    path('pay/', views.pay, name='pay'),
+    path('payment/', views.payment_page, name='payment_page'),
     path('register_email/', views.register_email, name='register_email'),
     path('register_phone_request/', views.register_phone_request, name='register_phone_request'),
     path('login_email/', views.login_email, name='login_email'),

@@ -1,3 +1,5 @@
+from django.shortcuts import render
+from urllib import request
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout
@@ -278,16 +280,10 @@ def delete_review(request, review_id):
     return redirect('product_detail', product_id=product_id)
 
 
-def pay(request):
-    jar_url = getattr(
-        settings,
-        'MONOBANK_JAR_URL',
-        'https://send.monobank.ua/jar/7Fn8uoXAXJ'
-    )
-    return HttpResponseRedirect(jar_url)
 
-
-
+def payment_page(request):
+    cart = request.session.get('cart', [])
+    return render(request, 'shop/payment_page.html', {'cart': cart})
 def register_email(request):
     if request.user.is_authenticated:
         return redirect('profile')
@@ -470,6 +466,11 @@ def password_reset_confirm(request, uidb64, token):
         return render(request, "shop/password_reset.html", {"step": "confirm", "form": form, "validlink": False})
 
 
+def add_to_cart(request, product_id):
+    cart = request.session.get('cart', [])
+    cart.append({'id': product_id, 'quantity': 1})
+    request.session['cart'] = cart
+    return redirect('cart_page')
 
 
 
