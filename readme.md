@@ -4,7 +4,7 @@ python -m venv .venv
 
 ./.venv/Scripts/activate.ps1
 
-pip install Pillow dj-database-url psycopg2-binary
+pip install Pillow dj-database-url psycopg2-binary environ
 
 python manage.py runmigrations
 
