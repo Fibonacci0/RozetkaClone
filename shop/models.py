@@ -5,7 +5,7 @@ from django.contrib.auth.models import User, AbstractUser
 from django.conf import settings
 
 class User(AbstractUser):
-    email = models.EmailField(unique=False, null=True, blank=True)
+    email = models.EmailField(unique=True, null=True, blank=True)
     phone_number = models.CharField(max_length=15, unique=True, null=True, blank=True)
 
 class PhoneOTP(models.Model):
