@@ -2,36 +2,77 @@
 {% load static %}
 
 {% block content %}
-<div class="flex justify-center items-center min-h-screen bg-gray-100">
-  <div class="w-full max-w-xl bg-white border border-gray-200 shadow-lg rounded-2xl p-8 space-y-6">
-    
-    <div class="flex items-center space-x-4">
-      <img src="{% static 'images/free-icon-font-user.png' %}" alt="User Icon" class="w-16 h-16 rounded-full border border-gray-300" />
-      <div>
-        <h2 class="text-2xl font-bold text-gray-800">{{ request.user.get_full_name|default:request.user.username }}</h2>
-        <p class="text-sm text-gray-600">Joined on {{ request.user.date_joined|date:"d M Y" }}</p>
+<div class="min-h-screen bg-gray-100 py-10">
+  <div class="max-w-5xl mx-auto space-y-10">
+
+    <!-- Profile Card -->
+    <div class="bg-white border border-gray-200 shadow-xl rounded-2xl p-8">
+      <div class="flex items-center space-x-6">
+        <img src="{% static 'images/free-icon-font-user.png' %}" 
+             alt="User Icon" 
+             class="w-20 h-20 rounded-full border-2 border-gray-300 shadow-sm" />
+        <div>
+          <h2 class="text-2xl font-bold text-gray-900">
+            {{ request.user.get_full_name|default:request.user.username }}
+          </h2>
+          <p class="text-sm text-gray-500">Joined on {{ request.user.date_joined|date:"d M Y" }}</p>
+        </div>
+      </div>
+
+      <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+        <div class="p-4 bg-gray-50 rounded-lg border">
+          <span class="text-gray-500">Username:</span>
+          <p class="font-semibold text-gray-800">{{ request.user.username }}</p>
+        </div>
+        <div class="p-4 bg-gray-50 rounded-lg border">
+          <span class="text-gray-500">Email:</span>
+          <p class="font-semibold text-gray-800">{{ request.user.email }}</p>
+        </div>
+      </div>
+
+      <div class="flex justify-end space-x-4 mt-6">
+        <a href="{% url 'profile_edit' %}" 
+           class="bg-[#00a046] hover:bg-[#00913f] text-white px-5 py-2 rounded-xl font-semibold shadow transition">
+           Редагувати профіль
+        </a>
+        <a href="{% url 'logout' %}" 
+           class="bg-red-500 hover:bg-red-600 text-white px-5 py-2 rounded-xl font-semibold shadow transition">
+           Вийти
+        </a>
       </div>
     </div>
 
-    <div class="space-y-2">
-      <div>
-        <span class="text-gray-500">Username:</span>
-        <span class="font-medium text-gray-800">{{ request.user.username }}</span>
-      </div>
-      <div>
-        <span class="text-gray-500">Email:</span>
-        <span class="font-medium text-gray-800">{{ request.user.email }}</span>
-      </div>
+    <!-- Favorites Section -->
+    <div class="bg-white border border-gray-200 shadow-xl rounded-2xl p-8">
+      <h3 class="text-xl font-bold text-gray-900 mb-6">❤️ Ваші улюблені товари</h3>
+
+      {% if favorites %}
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+          {% for favorite in favorites %}
+            <div class="relative group bg-gray-50 rounded-xl border shadow-sm hover:shadow-md transition overflow-hidden">
+              <a href="{% url 'product_detail' favorite.product.id %}">
+                <img src="{{ favorite.product.get_image }}" 
+                     alt="{{ favorite.product.name }}" 
+                     class="w-full h-40 object-cover group-hover:scale-105 transition" />
+                <div class="p-4">
+                  <h4 class="font-semibold text-gray-800 truncate">{{ favorite.product.name }}</h4>
+                  <p class="text-[#00a046] font-bold mt-1">{{ favorite.product.price }} ₴</p>
+                </div>
+              </a>
+
+              <!-- Heart Button -->
+              <div class="absolute top-2 right-2 text-red-500 cursor-pointer"
+                   onclick="toggleFavorite({{ favorite.product.id }}, this)">
+                <i class="fas fa-heart"></i>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-gray-500">У вас ще немає улюблених товарів.</p>
+      {% endif %}
     </div>
 
-    <div class="flex justify-between pt-4">
-      <a href="{% url 'logout' %}" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-semibold transition">
-        Вийти
-      </a>
-      <a href="{% url 'profile_edit' %}" class="bg-[#00a046] hover:bg-[#00913f] text-white px-4 py-2 rounded-lg font-semibold transition">
-        Редагувати профіль
-      </a>
-    </div>
   </div>
 </div>
 {% endblock %}

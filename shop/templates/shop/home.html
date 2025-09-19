@@ -133,10 +133,19 @@
                         {% if product.price >= min_price_selected|default:0 %}
                             <div class="w-[200px] bg-white rounded-2xl p-4 shadow-md hover:shadow-xl transition-all duration-300 ease-in-out transform hover:-translate-y-1 relative">
 
-                                <!-- Favorite Icon -->
-                                <div class="absolute top-2 right-2 text-orange-500 hover:text-orange-600 cursor-pointer">
-                                    <i class="far fa-heart"></i>
-                                </div>
+<!-- Favorite Icon -->
+      <div class="absolute top-2 right-2 text-orange-500 hover:text-orange-600 cursor-pointer"
+           onclick="toggleFavorite({{ product.id }}, this)">
+          {% if product.id in favorited_ids %}
+              <i class="fas fa-heart"></i>   <!-- filled heart -->
+          {% else %}
+              <i class="far fa-heart"></i>   <!-- empty heart -->
+          {% endif %}
+      </div>
+
+
+
+
 
                                 <!-- Product Image -->
                                 <a href="{% url 'product_detail' product.id %}">
@@ -151,7 +160,7 @@
                                 </p>
 
                                 <!-- Brand & Size -->
-                                <p class="text-xs text-center text-gray-500 mt-1">
+                                <p class="text-xs text-left text-gray-500 mt-1">
                                     {{ product.brand|default:"" }} {{ product.size|default:"" }}
                                 </p>
 
@@ -219,6 +228,48 @@
         maxInput.value = maxVal;
         slider.value = maxVal;
     });
+</script>
+<script>
+async function toggleFavorite(productId, el) {
+    try {
+        let response = await fetch(`/favorite/${productId}/`, {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": getCookie("csrftoken"),
+                "X-Requested-With": "XMLHttpRequest",
+            }
+        });
+
+        let data = await response.json();
+
+        let icon = el.querySelector("i");
+        if (data.favorited) {
+            icon.classList.remove("far");
+            icon.classList.add("fas");
+        } else {
+            icon.classList.remove("fas");
+            icon.classList.add("far");
+        }
+    } catch (err) {
+        console.error("Error toggling favorite:", err);
+    }
+}
+
+// Simple helper for CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== "") {
+        let cookies = document.cookie.split(";");
+        for (let cookie of cookies) {
+            cookie = cookie.trim();
+            if (cookie.startsWith(name + "=")) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
 </script>
 
 {% endblock %}
