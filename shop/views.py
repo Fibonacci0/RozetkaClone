@@ -26,6 +26,8 @@ from .models import Category, Product, Promo, Review, PhoneOTP
 from .forms import ProfileEditForm, UserRegisterForm, ReviewForm, EmailRegisterForm, EmailLoginForm, PhoneLoginForm, VerifySMSForm, PasswordResetRequestForm, PasswordResetConfirmForm
 from django.http import HttpResponseRedirect, JsonResponse
 
+User = get_user_model()
+
 def home(request):
     categories = Category.objects.all()
     products = Product.objects.all()
@@ -340,6 +342,7 @@ def delete_review(request, review_id):
 def payment_page(request):
     cart = request.session.get('cart', [])
     return render(request, 'shop/payment_page.html', {'cart': cart})
+
 def register_email(request):
     if request.user.is_authenticated:
         return redirect('profile')
@@ -369,7 +372,6 @@ def login_email(request):
         form = EmailLoginForm()
 
     return render(request, 'shop/auth.html', {'form': form})
-
 
 def login_phone_request(request):
     if request.method == "POST":

@@ -42,7 +42,7 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 
-LOGIN_URL = "login"
+LOGIN_URL = "login_phone_request"
 LOGOUT_URL = "logout"
 LOGOUT_REDIRECT_URL = "."
 LOGIN_REDIRECT_URL = "profile"
