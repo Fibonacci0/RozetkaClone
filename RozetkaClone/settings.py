@@ -41,6 +41,9 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://rozetkaclone.onrender.com",
+]
 
 LOGIN_URL = "login_phone_request"
 LOGOUT_URL = "logout"
