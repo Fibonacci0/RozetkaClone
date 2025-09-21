@@ -611,7 +611,7 @@ def get_cart_items(request):
     total_price = 0
 
     product_ids = [int(item["id"]) for item in cart]
-    products = {p.id: p for p in Product.objects.filter(id__in=product_ids)}
+    products = {p.id: p for p in Product.objects.filter(id__in=product_ids)} # type: ignore
 
     for item in cart:
         product_id = int(item["id"])
@@ -648,3 +648,14 @@ def cart_json(request):
         "total_price": total_price,
     }
     return JsonResponse(data)
+
+def cart_remove(request, pk):
+    cart = request.session.get('cart', [])
+    pk = int(pk)
+
+    # видаляємо товар з кошика
+    cart = [item for item in cart if int(item["id"]) != pk]
+
+    request.session['cart'] = cart
+    request.session.modified = True
+    return redirect('payment_page')

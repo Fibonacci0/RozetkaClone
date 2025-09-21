@@ -25,9 +25,12 @@
         <!-- Замовлення -->
         <div class="bg-white rounded-xl shadow p-6 space-y-4">
             <h2 class="text-xl font-semibold">Замовлення</h2>
+
             {% if items %}
             {% for item in items %}
             <div class="flex items-center justify-between border-b pb-4">
+
+                <!-- Ліва частина: картинка + назва + ціна -->
                 <div class="flex items-center space-x-4">
                     <img src="{{ item.product.get_image }}" alt="{{ item.product.name }}"
                         class="w-20 h-20 object-contain rounded">
@@ -36,11 +39,21 @@
                         <p class="text-sm text-gray-500">{{ item.product.price }} ₴ × {{ item.quantity }} од.</p>
                     </div>
                 </div>
-                <span class="font-semibold">{{ item.price }} ₴</span>
+
+                <!-- Права частина: кнопка видалення -->
+                <div>
+                    <form method="post" action="{% url 'cart_remove' item.product.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="bg-red-600 text-white px-3 py-1 rounded-md hover:bg-red-700">
+                            Видалити
+                        </button>
+                    </form>
+                </div>
+
             </div>
             {% endfor %}
             {% else %}
-            <p>Ваш кошик порожній.</p>
+            <p class="text-gray-500">Кошик порожній</p>
             {% endif %}
         </div>
 
@@ -82,13 +95,10 @@
         <!-- Оплата -->
         <div class="bg-white rounded-xl shadow p-6 space-y-4">
             <h2 class="text-xl font-semibold">Оплата</h2>
-
             <label class="flex items-center space-x-2">
                 <input type="radio" name="payment" value="card" checked class="text-green-600">
                 <span>Оплатити зараз</span>
             </label>
-
-            <!-- Картка -->
             <div class="border rounded-lg p-4 space-y-3">
                 <p class="font-medium">Карткою онлайн</p>
                 <input type="text" placeholder="Номер картки" class="w-full border rounded-lg p-2">
@@ -98,8 +108,6 @@
                 </div>
                 <button class="w-full bg-gray-200 py-2 rounded-lg">Додати</button>
             </div>
-
-            <!-- Або Google Pay -->
             <label class="flex items-center space-x-2">
                 <input type="radio" name="payment" value="gpay" class="text-green-600">
                 <span>Google Pay</span>
@@ -111,6 +119,7 @@
             <h2 class="text-xl font-semibold">Отримувач</h2>
             <p>{{ user.get_full_name|default:user.username }}</p>
         </div>
+
     </div>
 
     <!-- Сайдбар -->
@@ -129,11 +138,9 @@
                 <span>До сплати</span>
                 <span>{{ total_price }} ₴</span>
             </div>
-    
             <button class="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700">
                 Замовлення підтверджую
             </button>
-    
             <div class="flex items-start space-x-2 text-xs text-gray-600">
                 <input type="checkbox" class="mt-1">
                 <span>
