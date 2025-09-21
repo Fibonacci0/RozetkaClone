@@ -1,22 +1,22 @@
-<div id="promoCarousel" class="relative mb-5 mr-5 ml-5 rounded-lg overflow-hidden shadow-lg">
-    <div class="relative w-full overflow-hidden">
-        <!-- Carousel container -->
+<div id="promoCarousel" class="relative mb-5 mx-5  rounded-lg overflow-hidden shadow-lg">
+    <div class="relative w-full overflow-hidden ">
         <div class="carousel-slides flex transition-transform duration-700 ease-in-out">
             {% for promo in promos %}
             <div class="carousel-item min-w-full relative">
                 <img src="{{ promo.get_image }}" 
-                     class="block w-full h-64 sm:h-80 md:h-96 object-cover" 
+                     class="block w-full h-32 sm:h-48 md:h-60 object-cover" 
                      alt="Promotional image">
             </div>
             {% empty %}
             <div class="carousel-item min-w-full relative">
                 <img src="https://via.placeholder.com/1200x400/E5E7EB/6B7280?text=No+Promos+Available" 
-                     class="block w-full h-64 sm:h-80 md:h-96 object-cover" 
+                     class="block w-full h-32 sm:h-48 md:h-60 object-cover" 
                      alt="No promos available">
             </div>
             {% endfor %}
         </div>
     </div>
+
 
     <!-- Previous button -->
     <button id="prevBtn" class="absolute top-1/2 left-2 sm:left-4 -translate-y-1/2 bg-black bg-opacity-40 hover:bg-opacity-70 text-white p-2 sm:p-3 rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 z-10 group">

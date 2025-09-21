@@ -5,70 +5,284 @@
 
 {% block content %}
 
-<!-- Promo Carousel -->
-{% include 'shop/_promo_carousel.html' %}
+<div class="flex w-full">
 
-<!-- Products Header -->
-<h2 class="text-2xl font-bold mb-6 mt-10 ml-8">Продукти</h2>
+    <!-- Ліва панель: категорії або фільтри -->
+    <div class="w-1/5 min-w-[160px] p-6 border-r border-gray-200">
 
-<!-- Product List -->
-<div class="overflow-x-auto ml-8">
-    <div class="flex space-x-4 pb-6">
-        {% for product in products %}
-        <div class="min-w-[180px] max-w-[200px] bg-white border border-gray-200 rounded-lg p-3 shadow-sm hover:shadow-md transition flex-shrink-0 relative">
-
-            <!-- Favorite Icon -->
-            <div class="absolute top-2 right-2 text-orange-500 hover:text-orange-600 cursor-pointer">
-                <i class="far fa-heart"></i>
-            </div>
-
-            <!-- Product Image -->
-            <a href="{% url 'product_detail' product.id %}">
-                <img src="{{ product.get_image }}" alt="{{ product.name }}"
-                     class="w-full h-32 object-contain mb-2 rounded" loading="lazy">
-            </a>
-
-            <!-- Product Name -->
-            <p class="text-sm font-medium text-gray-800 truncate">
-                <a href="{% url 'product_detail' product.id %}">{{ product.name }}</a>
-            </p>
-
-            <!-- Rating -->
-            <div class="flex items-center text-yellow-400 text-xs mt-1">
-                <i class="fas fa-star mr-1"></i>
-                <span class="text-gray-800">{{ product.rating|floatformat:1|default:"0.0" }} / 5</span>
-                <span class="text-gray-500 ml-2">({{ product.review_count|default:"0" }} відгуків)</span>
-            </div>
-
-            <!-- Availability -->
-            <p class="text-xs mt-1 {% if product.available %}text-green-600{% else %}text-red-500{% endif %}">
-                {% if product.available %}
-                    Є в наявності
+        {% if not current_category %}
+            <!-- Список категорій -->
+            <ul class="text-left space-y-2 pl-4">
+                {% if categories %}
+                    {% for category in categories %}
+                        {% if category.slug %}
+                            <li>
+                                <a href="{% url 'category_detail' category.slug %}" class="text-base text-gray-700 hover:text-orange-600">
+                                    {% if category.icon %}
+                                        <i class="fa-solid {{ category.icon }} text-lg"></i>
+                                    {% else %}
+                                        <i class="fa-solid fa-box"></i>
+                                    {% endif %}
+                                    {{ category.name }}
+                                </a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
                 {% else %}
-                    Немає в наявності
+                    <li class="text-gray-400">Категорій немає.</li>
                 {% endif %}
-            </p>
+            </ul>
+        {% else %}
+            <!-- Фільтри для обраної категорії -->
+            <form method="get" class="filters-sidebar mt-4">
+                <h3 class="font-bold mb-2">Фільтри</h3>
 
-            <!-- Price -->
-            <p class="text-base font-bold mt-2 text-gray-900">
-                {{ product.price }} ₴
-            </p>
+                <!-- Бренд -->
+                <div class="mb-4">
+                    <h4 class="text-sm font-semibold">Бренд</h4>
+                    {% for brand in brands %}
+                        <label class="flex items-center text-sm">
+                            <input type="checkbox" name="brand" value="{{ brand }}"
+                                   {% if brand in selected_brands or brand in default_brands %}checked{% endif %}
+                                   class="mr-2">
+                            {{ brand }}
+                        </label>
+                    {% empty %}
+                        <p class="text-gray-400 text-sm">Брендів немає.</p>
+                    {% endfor %}
+                </div>
 
-            <!-- Add to Cart -->
-            <div class="mt-3 text-right">
-                <button class="text-green-600 text-lg hover:text-green-800">
-                    <i data-product-id="{{ product.id }}"
-                    data-product-name="{{ product.name }}"
-                    data-product-price="{{ product.price }}"
-                    data-product-image="{{ product.get_image }}"
-                    data-added="false"class="fas fa-cart-plus"></i>
-                </button>
+                <!-- Країна -->
+                <div class="mb-4">
+                    <h4 class="text-sm font-semibold">Країна</h4>
+                    {% for country in countries %}
+                        <label class="flex items-center text-sm">
+                            <input type="checkbox" name="country" value="{{ country }}"
+                                   {% if country in selected_countries or country in default_countries %}checked{% endif %}
+                                   class="mr-2">
+                            {{ country }}
+                        </label>
+                    {% empty %}
+                        <p class="text-gray-400 text-sm">Країн немає.</p>
+                    {% endfor %}
+                </div>
+
+                <!-- Продавець -->
+                <div class="mb-4">
+                    <h4 class="text-sm font-semibold">Продавець</h4>
+                    {% for seller in sellers %}
+                        <label class="flex items-center text-sm">
+                            <input type="checkbox" name="seller" value="{{ seller }}"
+                                   {% if seller in selected_sellers or seller in default_sellers %}checked{% endif %}
+                                   class="mr-2">
+                            {{ seller }}
+                        </label>
+                    {% empty %}
+                        <p class="text-gray-400 text-sm">Продавців немає.</p>
+                    {% endfor %}
+                </div>
+
+                <!-- Ціна -->
+                <div class="mb-4">
+                    <h4 class="text-sm font-semibold">Ціна</h4>
+                    
+                    <!-- Input для мінімальної і максимальної ціни -->
+                    <div class="flex space-x-2 mb-2">
+                        <input type="number" id="min_price_input" name="min_price" min="0" max="100000"
+                               value="{{ min_price_selected|default:0 }}" 
+                               class="w-1/2 px-2 py-1 border rounded text-sm">
+                        <input type="number" id="max_price_input" name="max_price" min="0" max="100000"
+                               value="{{ max_price_selected|default:100000 }}" 
+                               class="w-1/2 px-2 py-1 border rounded text-sm">
+                    </div>
+
+                    <!-- Повзунок для максимальної ціни -->
+                    <input type="range"
+                           id="price_slider"
+                           min="0"
+                           max="100000"
+                           step="100"
+                           value="{{ max_price_selected|default:100000 }}"
+                           oninput="document.getElementById('max_price_input').value = this.value"
+                           class="w-full h-1.5 rounded-lg accent-orange-500">
+                </div>
+
+                <button type="submit" class="mt-2 px-4 py-1 bg-orange-500 text-white rounded hover:bg-orange-600">Застосувати</button>
+            </form>
+        {% endif %}
+    </div>
+
+    <!-- Права панель: промо та продукти -->
+    <div class="flex-1 px-4">
+
+        <!-- Промо карусель -->
+        <div class="pt-5 border-b border-gray-200  pb-4 mb-6">
+            {% include 'shop/_promo_carousel.html' %}
+        </div>
+
+        <!-- Продукти -->
+        {% if not current_category %}
+            <h2 class="text-2xl font-bold mx-6 mb-6 mt-6">Популярні товари</h2>
+        {% else %}
+            <h2 class="text-2xl font-bold mx-6 mb-6 mt-6">{{ current_category }}</h2>
+        {% endif %}
+        <div class="overflow-x-auto">
+            <div class="flex flex-wrap gap-4 pb-6">
+                {% if products %}
+                    {% for product in products %}
+                        {% if product.price >= min_price_selected|default:0 %}
+                            <div class="w-[200px] bg-white rounded-2xl p-4 shadow-md hover:shadow-xl transition-all duration-300 ease-in-out transform hover:-translate-y-1 relative">
+
+<!-- Favorite Icon -->
+      <div class="absolute top-2 right-2 text-orange-500 hover:text-orange-600 cursor-pointer"
+           onclick="toggleFavorite({{ product.id }}, this)">
+          {% if product.id in favorited_ids %}
+              <i class="fas fa-heart"></i>   <!-- filled heart -->
+          {% else %}
+              <i class="far fa-heart"></i>   <!-- empty heart -->
+          {% endif %}
+      </div>
+
+
+
+
+
+                                <!-- Product Image -->
+                                <a href="{% url 'product_detail' product.id %}">
+                                    <img src="{{ product.get_image }}" alt="{{ product.name }}" class="w-full h-36 object-contain mb-2 rounded" loading="lazy">
+                                </a>
+
+                                <!-- Product Name -->
+                                <p class="text-sm text-gray-700 text-left leading-snug break-words max-w-full">
+                                    <a href="{% url 'product_detail' product.id %}">
+                                        {{ product.name|truncatechars:40 }}
+                                    </a>
+                                </p>
+
+                                <!-- Brand & Size -->
+                                <p class="text-xs text-left text-gray-500 mt-1">
+                                    {{ product.brand|default:"" }} {{ product.size|default:"" }}
+                                </p>
+
+                                <!-- Rating -->
+                                <div class="flex items-center text-yellow-400 text-xs mt-1">
+                                    {% with rating=product.rating|default:0 %}
+                                        {% with full_stars=rating|floatformat:0 %}
+                                            {% for i in "12345" %}
+                                                {% if forloop.counter <= full_stars %}
+                                                    <i class="fa-solid fa-star mr-0.5"></i>
+                                                {% else %}
+                                                    <i class="fa-regular fa-star mr-0.5"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                        {% endwith %}
+                                        <span class="text-gray-800 ml-1">{{ rating|floatformat:1 }}</span>
+                                        <span class="text-gray-500 ml-2">({{ product.review_count|default:"0" }} відгуків)</span>
+                                    {% endwith %}
+                                </div>
+
+                                <!-- Old Price -->
+                                <p class="text-sm text-left line-through text-gray-400 mt-2">
+                                    {{ product.old_price|default:"" }}
+                                </p>
+
+                                <!-- Discount Price -->
+                                <p class="text-lg font-bold text-left text-orange-600">
+                                    {{ product.price }} ₴
+                                </p>
+
+                                <!-- Cart Icon -->
+                                <div class="absolute bottom-2 right-2">
+                                    <button class="text-gray-700 hover:text-green-600 text-lg">
+                                        <i data-product-id="{{ product.id }}" data-product-name="{{ product.name }}" data-product-price="{{ product.price }}" data-product-image="{{ product.get_image }}" data-added="false" class="fas fa-shopping-basket"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                {% else %}
+                    <p class="text-gray-500">Товари не знайдено.</p>
+                {% endif %}
             </div>
         </div>
-        {% empty %}
-        <p class="text-gray-500">Немає продуктів для рекомендації.</p>
-        {% endfor %}
+
     </div>
 </div>
+
+<script>
+    // Синхронізація мін/макс полів та повзунка
+    const minInput = document.getElementById('min_price_input');
+    const maxInput = document.getElementById('max_price_input');
+    const slider = document.getElementById('price_slider');
+
+    minInput.addEventListener('input', () => {
+        let minVal = parseInt(minInput.value) || 0;
+        if(minVal > parseInt(maxInput.value)) minVal = parseInt(maxInput.value);
+        minInput.value = minVal;
+        slider.min = minVal;
+    });
+
+    maxInput.addEventListener('input', () => {
+        let maxVal = parseInt(maxInput.value) || 100000;
+        if(maxVal < parseInt(minInput.value)) maxVal = parseInt(minInput.value);
+        maxInput.value = maxVal;
+        slider.value = maxVal;
+    });
+</script>
+<script>
+async function toggleFavorite(productId, el) {
+    try {
+        let response = await fetch(`/favorite/${productId}/`, {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": getCookie("csrftoken"),
+                "X-Requested-With": "XMLHttpRequest",
+            }
+        });
+
+        let data = await response.json();
+
+        let icon = el.querySelector("i");
+        if (data.favorited) {
+            icon.classList.remove("far");
+            icon.classList.add("fas");
+        } else {
+            icon.classList.remove("fas");
+            icon.classList.add("far");
+        }
+    } catch (err) {
+        console.error("Error toggling favorite:", err);
+    }
+}
+
+// Simple helper for CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== "") {
+        let cookies = document.cookie.split(";");
+        for (let cookie of cookies) {
+            cookie = cookie.trim();
+            if (cookie.startsWith(name + "=")) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+<!-- Smartsupp Live Chat script -->
+<script type="text/javascript">
+    var _smartsupp = _smartsupp || {};
+    _smartsupp.key = '7ce9c2b5f2c9c9c01a16300e69af6d6e6c7d2542';
+    window.smartsupp||(function(d) {
+      var s,c,o=smartsupp=function(){ o._.push(arguments)};o._=[];
+      s=d.getElementsByTagName('script')[0];c=d.createElement('script');
+      c.type='text/javascript';c.charset='utf-8';c.async=true;
+      c.src='https://www.smartsuppchat.com/loader.js?';s.parentNode.insertBefore(c,s);
+    })(document);
+    </script>
+    <noscript> Powered by <a href=“https://www.smartsupp.com” target=“_blank”>Smartsupp</a></noscript>
+    
 
 {% endblock %}

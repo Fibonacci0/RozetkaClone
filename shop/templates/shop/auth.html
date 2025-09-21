@@ -1,0 +1,223 @@
+{% extends "shop/_layout.html" %}
+{% load static %}
+
+{% block content %}
+<div class="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50">
+
+    <div class="bg-white rounded-2xl shadow-[3px_3px_6px_rgb(251,146,60)] w-full max-w-md max-h-[90vh] overflow-hidden">
+        <div class="overflow-y-auto max-h-[90vh]">
+
+            <div class="flex justify-between items-center p-6">
+                <h1 id="auth-title" class="text-3xl font-medium">Вхід</h1>
+                <button class="text-3xl" onclick="window.location.href='/'">&times;</button>
+            </div>
+
+            <hr class="border-t-1 border-orange-500 w-full">
+
+            <form method="post" class="px-5 space-y-4">
+                {% csrf_token %}
+
+                {% for field in form %}
+                <div>
+                    <label for="{{ field.id_for_label }}" class="block text-gray-500 m-1">
+                        {{ field.label }}
+                    </label>
+                    {{ field }}
+                    {% if field.errors %}
+                    <p class="text-red-600 text-sm">{{ field.errors|striptags }}</p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+
+                <button type="submit"
+                    class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-xl transition duration-200">
+                    Продовжити
+                </button>
+            </form>
+
+            <div id="auth-switch-options" class="text-center mt-3"></div>
+
+            <div id="consent-text" class="text-center text-gray-500 text-sm px-5 pt-3">
+                Продовжуючи, ви підтверджуєте, що згодні увійти до
+
+                <a href="#" target="_blank" class="underline text-sm">
+                    облікового запису
+
+                </a>
+
+                TinGo та надеєте згоду на
+
+                <a href="#" target="_blank" class="underline text-sm">
+                    обробку персональних даних
+                </a>
+            </div>
+
+            <div id="or-divider" class="flex items-center py-3">
+                <hr class="flex-grow border-t border-orange-500 mx-3">
+                <span class="text-gray-500">або</span>
+                <hr class="flex-grow border-t border-orange-500 mx-3">
+            </div>
+
+
+
+            <div id="options" class="flex flex-col gap-4 px-5 pb-5">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+        const currentPath = window.location.pathname;
+        const container = document.getElementById('options');
+
+
+        const authOptions = [
+            {
+                text: "Увійти за номером телефону",
+                url: "/login_phone_request/",
+                icon: "{% static 'images/icons/phone.svg' %}"
+            },
+            {
+                text: "Увійти через електронну пошту",
+                url: "/login_email/",
+                icon: "{% static 'images/icons/email.svg' %}"
+            },
+            {
+                text: "Продовжити через Google",
+                url: "#",
+                icon: "{% static 'images/icons/google.svg' %}"
+            },
+            {
+                text: "Продовжити через Apple",
+                url: "#",
+                icon: "{% static 'images/icons/apple.svg' %}"
+            },
+            {
+                text: "Продовжити через Facebook",
+                url: "#",
+                icon: "{% static 'images/icons/facebook.svg' %}"
+            },
+        ];
+
+        const email_authOptions = [
+            {
+                text: "Скинути пароль",
+                url: "/password-reset/",
+            },
+            {
+                text: "Увійти за номером телефону",
+                url: "/login_phone_request/",
+            }
+        ];
+
+        const registerOptions = [
+            {
+                text: "Увійти за номером телефону",
+                url: "/register_phone_request/",
+                icon: "{% static 'images/icons/phone.svg' %}"
+            },
+            {
+                text: "Увійти через електронну пошту",
+                url: "/register_email/",
+                icon: "{% static 'images/icons/email.svg' %}"
+            },
+            {
+                text: "Продовжити через Google",
+                url: "#",
+                icon: "{% static 'images/icons/google.svg' %}"
+            },
+            {
+                text: "Продовжити через Apple",
+                url: "#",
+                icon: "{% static 'images/icons/apple.svg' %}"
+            },
+            {
+                text: "Продовжити через Facebook",
+                url: "#",
+                icon: "{% static 'images/icons/facebook.svg' %}"
+            },
+
+        ]
+
+        function renderOptions(container, options) {
+            container.innerHTML = "";
+
+            options.forEach(option => {
+                if (currentPath !== option.url) {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    if (currentPath === "/login_email/") {
+                        btn.className = "text-orange-500 hover:text-orange-700 font-semibold text-lg transition duration-200 justify-center";
+                    }
+                    else {
+                        btn.className = "w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-xl transition duration-200 flex items-center justify-start pl-[80px]";
+
+                        if (option.icon) {
+                            const icon = document.createElement('img');
+                            icon.src = option.icon;
+                            icon.className = "w-6 h-6 mr-2";
+
+                            btn.appendChild(icon);
+                        }
+                    }
+
+                    btn.appendChild(document.createTextNode(`${option.text}`));
+
+                    btn.addEventListener('click', () => {
+                        window.location.href = option.url;
+                    });
+
+                    container.appendChild(btn);
+                }
+            });
+        }
+
+        function renderSwitchButtons(container) {
+            let switchContainer = document.getElementById("auth-switch-options");
+            
+            switchContainer.innerHTML = "";
+
+            if (currentPath.includes("/login")) {
+                switchContainer.innerHTML = `
+            <span>Ще не маєте акаунту?</span>
+            <button type="button" class="text-green-600 font-semibold hover:underline"
+                onclick="window.location.href='/register_email/'">Зареєструватися</button>
+        `;
+            } else if (currentPath.includes("/register")) {
+                switchContainer.innerHTML = `
+            <span>Вже маєте акаунт?</span>
+            <button type="button" class="text-green-600 font-semibold hover:underline"
+                onclick="window.location.href='/login_email/'">Увійти</button>
+        `;
+            }
+        }
+
+
+
+        if (currentPath === "/login_phone_request/") {
+            renderOptions(container, authOptions);
+            renderSwitchButtons();
+        } else if (currentPath === "/login_email/") {
+            container.classList.add("mt-5");
+            renderOptions(container, email_authOptions);
+            renderSwitchButtons();
+
+            const consentText = document.getElementById("consent-text");
+            const orDivider = document.getElementById("or-divider");
+
+            if (consentText) consentText.style.display = "none";
+            if (orDivider) orDivider.style.display = "none";
+
+        } else if (currentPath === "/register_email/" || currentPath === '/register_phone_request/') {
+            renderOptions(container, registerOptions);
+            document.getElementById("auth-title").textContent = "Реєстрація";
+            renderSwitchButtons();
+        }
+
+
+    });
+</script>
+
+{% endblock %}

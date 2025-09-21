@@ -1,0 +1,20 @@
+{% extends "shop/_layout.html" %}
+{% block content %}
+<h2 class="text-xl font-semibold mb-4">Результати пошуку для: "{{ query }}"</h2>
+
+{% if products %}
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+        {% for product in products %}
+            <div class="bg-white p-4 shadow rounded-lg">
+                <a href="{% url 'product_detail' product.id %}">
+                    <img src="{{ product.get_image }}" alt="{{ product.name }}" class="w-full h-40 object-contain mb-2" />
+                    <h3 class="text-lg font-semibold">{{ product.name }}</h3>
+                    <p class="text-green-600 font-bold">{{ product.price }} ₴</p>
+                </a>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <p>Нічого не знайдено.</p>
+{% endif %}
+{% endblock %}

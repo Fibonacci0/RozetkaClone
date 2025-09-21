@@ -9,11 +9,25 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
-
+import os
 from pathlib import Path
+import environ
+
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+env = environ.Env()
+environ.Env.read_env(BASE_DIR / ".env") 
+
+AUTH_USER_MODEL = 'shop.User'
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',    # username + password
+    'shop.backends.EmailBackend',                   # email    + password
+
+]
 
 APP_DIRS = True
 # Quick-start development settings - unsuitable for production
@@ -26,6 +40,13 @@ SECRET_KEY = 'django-insecure-#a0i&^#fi4vvosl-#iw9=6j&_3bl_o8+6v!uc0euo)z^92_*#j
 DEBUG = True
 
 ALLOWED_HOSTS = []
+
+
+LOGIN_URL = "login_phone_request"
+LOGOUT_URL = "logout"
+LOGOUT_REDIRECT_URL = "."
+LOGIN_REDIRECT_URL = "profile"
+
 
 
 # Application definition
@@ -73,12 +94,33 @@ WSGI_APPLICATION = 'RozetkaClone.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default=("postgresql://neondb_owner:npg_9DZGQYnKfSR1@ep-shy-boat-agwxkdgx-pooler.c-2.eu-central-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require") # "dev" - newest branch
+        #default=("postgresql://neondb_owner:npg_9DZGQYnKfSR1@ep-proud-mode-agwc0uy7-pooler.c-2.eu-central-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require") # "prod" - older branch, use as example 
+
+        
+    )
 }
+
+VONAGE_API_KEY = 1
+VONAGE_API_SECRET = 1
+VONAGE_SENDER_ID = 1
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 1
+DEFAULT_FROM_EMAIL = 1
+EMAIL_HOST_PASSWORD = 1
 
 
 # Password validation

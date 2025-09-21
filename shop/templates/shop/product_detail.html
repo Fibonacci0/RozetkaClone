@@ -1,10 +1,84 @@
 {% extends "shop/_layout.html" %}
+
 {% block content %}
-<h2>{{ product.name }}</h2>
-<img src="{{ product.get_image }}" alt="{{ product.name }}" style="max-width:300px;">
-<p><strong>Price:</strong> ${{ product.price }}</p>
-<p><strong>Category:</strong> {{ product.category }}</p>
-<p><strong>Description:</strong> {{ product.description }}</p>
-<p><strong>Rating:</strong> {{ product.rating }} ({{ product.review_count }} reviews)</p>
-<a href="{% url 'home' %}">Back to Home</a>
+<div class="container mx-auto p-6">
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- Фото товару -->
+    <div class="flex justify-center">
+      <img src="{{ product.get_image }}" alt="{{ product.name }}"
+        class="rounded-lg shadow-md max-h-[400px] object-contain">
+    </div>
+
+    <!-- Інфоблок -->
+    <div class="flex flex-col justify-between">
+      <div>
+        <h1 class="text-2xl font-bold mb-3">{{ product.name }}</h1>
+
+        <!-- Рейтинг -->
+        <p class="text-yellow-500 mb-2">
+          ⭐ {{ product.rating }} <span class="text-gray-500 text-sm">({{ product.review_count }} відгуків)</span>
+        </p>
+
+        <!-- Ціна -->
+        <p class="text-3xl font-semibold text-green-60 mb-4">${{ product.price }}</p>
+
+        <!-- Категорія -->
+        <p class="text-sm text-gray-500 mb-4">Категорія: {{ product.category }}</p>
+
+        <!-- Опис (короткий) -->
+        <p class="text-gray-700 mb-6 line-clamp-3">{{ product.description }}</p>
+      </div>
+
+      <!-- Кнопка купівлі -->
+      {% if cart %}
+      <a href="{% url 'payment_page' %}">
+        <button class="bg-green-600 text-white ...">Купити</button>
+      </a>
+      {% else %}
+      <button class="bg-gray-400 text-white cursor-not-allowed" disabled>Купити</button>
+      {% endif %}
+
+    </div>
+  </div>
+
+  <!-- Вкладки (Опис і Відгуки) -->
+  <div class="mt-10">
+    <div class="border-b flex space-x-6 text-lg">
+      <button class="py-2 border-b-2 border-green-600 font-semibold">Опис</button>
+      <button class="py-2 text-gray-500 hover:text-black">Відгуки</button>
+    </div>
+
+    <!-- Опис -->
+    <div class="mt-6">
+      <p class="text-gray-800 leading-relaxed">{{ product.description }}</p>
+    </div>
+  </div>
+
+  <!-- Відгуки -->
+  <div class="mt-10">
+    <h2 class="text-xl font-bold mb-4">Всі відгуки</h2>
+
+    {% if user.is_authenticated and user_review_exists %}
+    <button class="bg-gray-400 text-white px-4 py-2 rounded-md cursor-not-allowed">Ви вже залишили відгук</button>
+    {% else %}
+    <a href="{% url 'add_review' product.id %}"
+      class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md">
+      Додати відгук
+    </a>
+    {% endif %}
+
+    <div class="mt-6 space-y-4">
+      {% for review in reviews %}
+      {% include 'shop/_review.html' %}
+      {% empty %}
+      <p class="text-gray-500">Відгуків немає.</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Повернення на головну -->
+  <div class="mt-10">
+    <a href="{% url 'home' %}" class="text-blue-600 hover:underline">← Назад на головну</a>
+  </div>
+</div>
 {% endblock %}

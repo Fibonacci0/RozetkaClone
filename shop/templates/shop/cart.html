@@ -1,0 +1,12 @@
+<!-- shop/templates/shop/cart.html -->
+<h1>Ваш кошик</h1>
+
+{% if cart %}
+<ul>
+    {% for item in cart %}
+    <li>{{ item.name }} - {{ item.quantity }}</li>
+    {% endfor %}
+</ul>
+{% else %}
+<p>Кошик порожній</p>
+{% endif %}
