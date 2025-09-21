@@ -28,6 +28,12 @@
           <span class="text-gray-500">Email:</span>
           <p class="font-semibold text-gray-800">{{ request.user.email }}</p>
         </div>
+        <div class="p-4 bg-gray-50 rounded-lg border">
+  <span class="text-gray-500">Номер телефону:</span>
+  <p class="font-semibold text-gray-800">
+    {{ request.user.phone_number|default_if_none:"Номер телефону відсутній :("|default:"Номер телефону відсутній :(" }}
+  </p>
+</div>
       </div>
 
       <div class="flex justify-end space-x-4 mt-6">

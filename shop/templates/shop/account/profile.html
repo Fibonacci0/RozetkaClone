@@ -1,0 +1,123 @@
+{% extends "shop/account/profile_base.html" %}
+
+{% block profile_content %}
+<h2 class="text-xl font-semibold mb-4">Мій профіль</h2>
+
+<form method="post" enctype="multipart/form-data" class="space-y-4">
+  {% csrf_token %}
+
+  <!-- View mode -->
+  {% if warnings %}
+  {% for warn in warnings %}
+  <div class="bg-yellow-100 border border-yellow-400 text-yellow-800 px-4 py-3 rounded-lg mb-4">
+    {{ warn.message|safe }}
+    {% if warn.link %}
+    <a href="{{ warn.link }}" class="underline text-yellow-900">Встановити пароль</a>
+    {% endif %}
+  </div>
+  {% endfor %}
+  {% endif %}
+
+  <div id="view-mode" class="space-y-3 {% if form.errors %}hidden{% endif %}">
+    <div>
+      <label class="block text-sm font-medium text-gray-600">Full Name</label>
+      {% with first=request.user.first_name|default_if_none:"" last=request.user.last_name|default_if_none:"" %}
+      {% if first or last %}
+      <div class="text-gray-800">{{ first }} {{ last }}</div>
+      {% else %}
+      <div class="text-gray-800">-</div>
+      {% endif %}
+      {% endwith %}
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-gray-600">Phone Number</label>
+      <div class="text-gray-800">{{ request.user.phone_number|default:"-" }}</div>
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-gray-600">Email</label>
+      <div class="text-gray-800">{{ request.user.email|default:"-" }}</div>
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-gray-600">Username</label>
+      <div class="text-gray-800">{{ request.user.username }}</div>
+    </div>
+  </div>
+
+  <!-- Edit mode -->
+  <div id="edit-mode" class="space-y-4 {% if not form.errors %}hidden{% endif %}">
+
+    {% for field in form %}
+    <div>
+      {{ field.label_tag }}
+      {{ field }}
+      {% if field.errors %}
+      <ul class="text-red-600 text-sm mt-1">
+        {% for error in field.errors %}
+        <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+    </div>
+    {% endfor %}
+
+    {% if form.non_field_errors %}
+    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl">
+      <ul class="list-disc pl-5">
+        {% for error in form.non_field_errors %}
+        <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+  </div>
+
+  <div class="flex flex-col sm:flex-row sm:space-x-4 space-y-3 sm:space-y-0 pt-6 justify-start">
+    <button id="edit-btn" type="button"
+      class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-2xl font-semibold text-lg transition duration-200 shadow-md hover:shadow-lg {% if form.errors %}hidden{% endif %}">
+      Редагувати
+    </button>
+
+    <button type="submit" id="save-btn"
+      class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-2xl font-semibold text-lg transition duration-200 shadow-md hover:shadow-lg {% if not form.errors %}hidden{% endif %}">
+      Зберегти
+    </button>
+
+    <button type="button" id="cancel-btn"
+      class="bg-gray-400 hover:bg-gray-500 text-white px-6 py-3 rounded-2xl font-semibold text-lg transition duration-200 shadow-sm hover:shadow-md {% if not form.errors %}hidden{% endif %}">
+      Скасувати
+    </button>
+  </div>
+
+
+
+
+
+  <script>
+    const editBtn = document.getElementById('edit-btn');
+    const saveBtn = document.getElementById('save-btn');
+    const cancelBtn = document.getElementById('cancel-btn');
+    const viewMode = document.getElementById('view-mode');
+    const editMode = document.getElementById('edit-mode');
+    const form = document.querySelector('form');
+
+    const initialValues = {};
+    form.querySelectorAll('input, textarea, select').forEach(input => {
+      initialValues[input.name] = input.value;
+    });
+
+
+    editBtn.addEventListener('click', () => {
+      viewMode.classList.add('hidden');
+      editMode.classList.remove('hidden');
+      editBtn.classList.add('hidden');
+      saveBtn.classList.remove('hidden');
+      cancelBtn.classList.remove('hidden');
+    });
+
+    cancelBtn.addEventListener('click', () => {
+      window.location.reload();
+    });
+  </script>
+
+  {% endblock %}
