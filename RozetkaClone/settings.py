@@ -39,7 +39,7 @@ SECRET_KEY = 'django-insecure-#a0i&^#fi4vvosl-#iw9=6j&_3bl_o8+6v!uc0euo)z^92_*#j
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 LOGIN_URL = "login_phone_request"
