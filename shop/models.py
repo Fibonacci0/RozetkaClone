@@ -1,7 +1,7 @@
 from django.db import models
 from django.utils import timezone
 from django.utils.text import slugify
-from django.contrib.auth.models import User, AbstractUser
+from django.contrib.auth.models import User, AbstractUser # type: ignore
 from django.conf import settings
 
 class User(AbstractUser):
@@ -68,6 +68,7 @@ class Product(models.Model):
     brand = models.CharField(max_length=100, blank=True, null=True)   
     country = models.CharField(max_length=100, blank=True, null=True) 
     seller = models.CharField(max_length=100, blank=True, null=True)  
+    is_deleted = models.BooleanField(default=False)  # ✅ м’яке видалення
 
     # Нове поле для розміру
     SIZE_CHOICES = [
@@ -86,6 +87,7 @@ class Product(models.Model):
     rating = models.FloatField(default=0.0)
     review_count = models.IntegerField(default=0)
 
+    @property
     def get_image(self):
         if self.image:
             return self.image.url
@@ -146,3 +148,40 @@ class Review(models.Model):
 
     def __str__(self):
         return f"{self.user.username} — {self.rating}★ для {self.product.name}"
+
+class Cart(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    session_key = models.CharField(max_length=40, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    @property
+    def total_price(self):
+        return sum(item.total_price() for item in self.items.all()) # type: ignore
+
+    def __str__(self):
+        return f"Cart {self.id} for {self.user}" # type: ignore
+
+
+class CartItem(models.Model):
+    cart = models.ForeignKey(Cart, related_name="items", on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=1)
+
+    @property
+    def total_price(self):
+        return self.product.price * self.quantity
+
+    def __str__(self):
+        return f"{self.product.name} × {self.quantity}"
+
+
+class Order(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    cart = models.OneToOneField(Cart, on_delete=models.CASCADE)
+    address = models.CharField(max_length=255, blank=True, null=True)
+    phone = models.CharField(max_length=20, blank=True, null=True)
+    status = models.CharField(max_length=20, default="new")  # new, paid, shipped
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Order {self.id} by {self.user}" # type: ignore

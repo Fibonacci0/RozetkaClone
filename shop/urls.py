@@ -24,4 +24,10 @@ urlpatterns = [
     path("password-reset/", views.password_reset_request, name="password_reset"),
     path("reset/<uidb64>/<token>/", views.password_reset_confirm, name="password_reset_confirm"),
     path('favorite/<int:product_id>/', views.toggle_favorite, name='toggle_favorite'),
+    # path('cart/add/<int:product_id>/', views.add_to_cart, name='add_to_cart'),
+    path('add-to-cart/<int:product_id>/', views.add_to_cart, name='add_to_cart'),
+    path('cart/', views.cart_page, name='cart_page'),
+    path("cart/json/", views.cart_json, name="cart_json"),
+    path("cart/remove/<int:pk>/", views.cart_remove, name="cart_remove"),
+
 ]

@@ -273,7 +273,7 @@ def product_list(request):
 def product_detail(request, product_id):
     categories = Category.objects.all()
     product = get_object_or_404(Product, id=product_id)
-    reviews = product.reviews.select_related('user').order_by('-created_at')
+    reviews = product.reviews.select_related('user').order_by('-created_at') # type: ignore
 
     user_review_exists = False
     is_favorited = False
@@ -303,7 +303,7 @@ def product_detail(request, product_id):
 def review_form(request, product_id=None, review_id=None):
     if review_id:
         review = get_object_or_404(Review, id=review_id, user=request.user)
-        product = get_object_or_404(Product, id=review.product.id)
+        product = get_object_or_404(Product, id=review.product.id) # type: ignore
         is_edit = True
     else:
         review = None
@@ -317,7 +317,7 @@ def review_form(request, product_id=None, review_id=None):
             review.user = request.user
             review.product = product
             review.save()
-            return redirect('product_detail', product_id=product.id)
+            return redirect('product_detail', product_id=product.id) # type: ignore
     else:
         form = ReviewForm(instance=review)
 
@@ -331,7 +331,7 @@ def review_form(request, product_id=None, review_id=None):
 @login_required
 def delete_review(request, review_id):
     review = get_object_or_404(Review, id=review_id, user=request.user)
-    product_id = review.product.id
+    product_id = review.product.id # type: ignore
 
     if request.method == 'POST':
         review.delete()
@@ -339,9 +339,62 @@ def delete_review(request, review_id):
 
 
 
+from django.shortcuts import render, redirect
+from .models import Cart
+
+# def payment_page(request):
+#     # Отримуємо кошик для поточного користувача (за user або session)
+#     if request.user.is_authenticated:
+#         cart, created = Cart.objects.get_or_create(user=request.user)
+#     else:
+#         # Якщо неавторизований, тоді кошик через session_key
+#         session_key = request.session.session_key
+#         if not session_key:
+#             request.session.create()
+#         cart, created = Cart.objects.get_or_create(session_key=request.session.session_key)
+
+#     return render(request, "shop/payment_page.html", {
+#         "cart": cart,
+#         "user": request.user
+#     })
+
+# def payment_page(request):
+#     cart = request.session.get("cart", [])
+#     print("!!!!!!!!", cart)
+#     items = []
+#     total_price = 0
+
+#     # cart може бути або dict з id -> {...}, або просто список dict'ів
+#     if isinstance(cart, dict):  
+#         cart = [cart]  # перетворимо на список для зручності
+
+#     for item in cart:
+#         product_id = item.get("id")   # тут зчитуємо правильно
+#         quantity = item.get("quantity", 1)
+
+#         product = get_object_or_404(Product, id=product_id)
+#         price = product.price * quantity
+#         total_price += price
+
+#         items.append({
+#             "product": product,
+#             "quantity": quantity,
+#             "price": price,
+#         })
+
+#     return render(request, "shop/payment_page.html", {
+#         "items": items,
+#         "total_price": total_price,
+#     })
+
 def payment_page(request):
-    cart = request.session.get('cart', [])
-    return render(request, 'shop/payment_page.html', {'cart': cart})
+    print("DEBUG SESSION CART:", request.session.get("cart"))
+    items, total_price = get_cart_items(request)
+    if not items:
+        messages.error(request, "Ваш кошик порожній")
+        return redirect('home')
+    return render(request, "shop/payment_page.html", {"items": items, "total_price": total_price})
+
 
 def register_email(request):
     if request.user.is_authenticated:
@@ -391,7 +444,7 @@ def login_phone_request(request):
             if active_code:
                 request.session["otp_expires_at"] = active_code.expires_at.isoformat()
 
-            request.session["phone_user_id"] = user.id
+            request.session["phone_user_id"] = user.id # type: ignore
             request.session["phone_number"] = phone
             request.session.modified = True
 
@@ -413,7 +466,7 @@ def register_phone_request(request):
             user = User.objects.create_user(username=phone, phone_number=phone)
 
             generate_sms_code(user)
-            request.session["phone_user_id"] = user.id
+            request.session["phone_user_id"] = user.id # type: ignore
             request.session["phone_number"] = phone
             
             return redirect("verify_phone_code")
@@ -525,10 +578,84 @@ def password_reset_confirm(request, uidb64, token):
 
 
 def add_to_cart(request, product_id):
+    if not request.session.session_key:
+        request.session.create()
+
     cart = request.session.get('cart', [])
-    cart.append({'id': product_id, 'quantity': 1})
+
+    # шукаємо продукт в кошику
+    for item in cart:
+        if item['id'] == product_id:
+            item['quantity'] += 1
+            break
+    else:
+        cart.append({'id': product_id, 'quantity': 1})
+
     request.session['cart'] = cart
+    request.session.modified = True
     return redirect('cart_page')
 
+def cart_page(request):
+    print("DEBUG SESSION CART (cart_page):", request.session.get("cart"))
+    cart = request.session.get('cart', [])
+    products = Product.objects.filter(id__in=[item['id'] for item in cart])
+    return render(request, "shop/cart_page.html", {
+        "cart": cart,
+        "products": products,
+    })
 
 
+def get_cart_items(request):
+    cart = request.session.get('cart', [])
+    items = []
+    total_price = 0
+
+    product_ids = [int(item["id"]) for item in cart]
+    products = {p.id: p for p in Product.objects.filter(id__in=product_ids)} # type: ignore
+
+    for item in cart:
+        product_id = int(item["id"])
+        product = products.get(product_id)
+        if not product:
+            continue  # якщо товар видалено з БД
+        quantity = int(item.get("quantity", 1))
+        price = product.price * quantity
+        total_price += price
+        items.append({
+            "product": product,
+            "quantity": quantity,
+            "price": price,
+        })
+
+    return items, total_price
+
+from django.http import JsonResponse
+
+def cart_json(request):
+    items, total_price = get_cart_items(request)
+    data = {
+        "items": [
+            {
+                "id": item["product"].id,
+                "name": item["product"].name,
+                "price": item["product"].price,
+                "quantity": item["quantity"],
+                "total": item["price"],
+                "image": item["product"].get_image,
+            }
+            for item in items
+        ],
+        "total_price": total_price,
+    }
+    return JsonResponse(data)
+
+def cart_remove(request, pk):
+    cart = request.session.get('cart', [])
+    pk = int(pk)
+
+    # видаляємо товар з кошика
+    cart = [item for item in cart if int(item["id"]) != pk]
+
+    request.session['cart'] = cart
+    request.session.modified = True
+    return redirect('payment_page')

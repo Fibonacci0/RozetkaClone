@@ -405,6 +405,98 @@
     </footer>
 
     <script>
+document.addEventListener('DOMContentLoaded', () => {
+    const cartModal = document.getElementById('cartModal');
+    const openCartModalBtn = document.getElementById('open-cart-modal');
+    const closeCartModalBtn = document.getElementById('closeCartModal');
+    const cartItemsContainer = document.getElementById('cartItemsContainer');
+    const emptyCartMessage = document.getElementById('emptyCartMessage');
+    const totalPriceElement = document.getElementById('totalPrice');
+
+    // 🔓 Відкрити кошик (витягуємо дані з Django)
+    openCartModalBtn?.addEventListener('click', () => {
+        fetch('/cart/json/')   // зроби ендпоінт у Django, який повертає session cart у JSON
+            .then(res => res.json())
+            .then(data => updateCartModal(data));
+        cartModal.classList.remove('hidden');
+    });
+
+    // ❌ Закрити кошик
+    closeCartModalBtn?.addEventListener('click', () => {
+        cartModal.classList.add('hidden');
+    });
+
+    // 🛒 Додавання товару в кошик (оновлює session на сервері)
+    document.querySelectorAll('[data-product-id]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const id = btn.dataset.productId;
+
+            fetch(`/add-to-cart/${id}/`, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": getCookie("csrftoken"),
+                },
+            }).then(() => {
+                // після успіху можна оновити кошик
+                fetch('/cart/json/')
+                    .then(res => res.json())
+                    .then(data => {console.log(data); updateCartModal(data)});
+                cartModal.classList.remove('hidden');
+            });
+        });
+    });
+
+    // 🔄 Рендер модалки з JSON-даних
+    function updateCartModal(data) {
+        cartItemsContainer.innerHTML = '';
+
+        if (data.items.length === 0) {
+            cartItemsContainer.classList.add('hidden');
+            emptyCartMessage.classList.remove('hidden');
+            totalPriceElement.textContent = '0 ₴';
+            return;
+        }
+
+        cartItemsContainer.classList.remove('hidden');
+        emptyCartMessage.classList.add('hidden');
+
+        data.items.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'flex items-center justify-between border-b pb-2';
+            div.innerHTML = `
+                <div class="flex items-center space-x-4">
+                    <img src="${item.image}" alt="${item.name}" class="w-12 h-12 object-contain rounded">
+                    <div>
+                        <p class="text-sm font-semibold">${item.name}</p>
+                        <p class="text-sm text-gray-500">${item.price} ₴ x ${item.quantity} = <b>${item.total} ₴</b></p>
+                    </div>
+                </div>
+            `;
+            cartItemsContainer.appendChild(div);
+        });
+
+        totalPriceElement.textContent = `${data.total_price} ₴`;
+    }
+
+    // 🔑 Дістаємо CSRF токен із куків
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                cookie = cookie.trim();
+                if (cookie.startsWith(name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+});
+</script>
+
+    <!-- <script>
         document.addEventListener('DOMContentLoaded', () => {
             const cartModal = document.getElementById('cartModal');
             const openCartModalBtn = document.getElementById('open-cart-modal');
@@ -540,6 +632,7 @@
                     });
                 });
             }
+            
 
             // Промокод
             applyPromoBtn?.addEventListener('click', () => {
@@ -559,7 +652,7 @@
                 window.location.href = "/checkout/";
             });
         });
-    </script>
+    </script> -->
 
 
     <script>
