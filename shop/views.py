@@ -7,12 +7,9 @@ from django.contrib import messages
 from django.db.models import Q, Max  # <- додав сюди Max
 from django.db.models import Min, Max
 from .models import Category, Favorite, Product, Promo, Review
-from .forms import ProfileEditForm, UserRegisterForm, ReviewForm, LoginForm
 from django.conf import settings
-from django.http import HttpResponseRedirect
 from .utils import generate_sms_code, verify_sms_code
 from django.utils import timezone
-from django.http import JsonResponse
 from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode
@@ -23,7 +20,11 @@ from django.utils.http import urlsafe_base64_decode
 from django.contrib.auth.hashers import make_password
 from django.template.loader import render_to_string
 from .models import Category, Product, Promo, Review, PhoneOTP
-from .forms import ProfileEditForm, UserRegisterForm, ReviewForm, EmailRegisterForm, EmailLoginForm, PhoneLoginForm, VerifySMSForm, PasswordResetRequestForm, PasswordResetConfirmForm
+from .forms import ReviewForm, EmailRegisterForm, EmailLoginForm, PhoneLoginForm, PhoneRegisterForm, VerifySMSForm, PasswordResetRequestForm, PasswordResetConfirmForm, UserProfileForm, PasswordChangeForm
+from django.urls import reverse
+
+from django.contrib.auth import update_session_auth_hash
+
 from django.http import HttpResponseRedirect, JsonResponse
 
 User = get_user_model()
@@ -160,6 +161,56 @@ def category_detail(request, slug):
     return render(request, 'shop/home.html', context)
 
 
+@login_required
+def profile_view(request):
+    user = request.user
+    warnings = []
+
+    if not user.has_usable_password() and user.email:
+        warnings.append({
+            'message': 'У вашому акаунті наразі немає пароля для входу. '
+                       'Щоб уникнути проблем із входом, рекомендуємо встановити пароль.',
+            'link': reverse('profile_password'),
+            'type': 'warning'
+        })
+
+    if request.method == "POST":
+        form = UserProfileForm(request.POST, request.FILES, instance=user)
+        if form.is_valid():
+            user = form.save(commit=False)
+
+            for field in ['first_name', 'last_name', 'email', 'phone_number']:
+                value = getattr(user, field)
+                if value == '':
+                    setattr(user, field, None)
+
+            user.save()
+            return redirect('profile')
+    else:
+        form = UserProfileForm(instance=user)
+    
+    return render(request, 'shop/account/profile.html', {
+        'form': form,
+        'warnings': warnings,
+        })
+
+@login_required
+def password_view(request):
+    if request.method == "POST":
+        form = PasswordChangeForm(request.user, request.POST)
+        if form.is_valid():
+            user = form.save()
+            update_session_auth_hash(request, user)
+            return redirect("profile_password")
+    else:
+        form = PasswordChangeForm(request.user)
+
+    return render(request, "shop/account/password.html", {"form": form})
+
+@login_required
+def other_view(request):
+    return render(request, "shop/account/other.html")
+
 # --- Пошук продуктів ---
 def search_products(request):
     categories = Category.objects.all()
@@ -179,70 +230,11 @@ def all_categories(request):
     categories = Category.objects.all()
     return render(request, 'shop/all_categories.html', {'categories': categories})
 
-# --- Реєстрація користувача ---
-def register(request):
-    if request.method == 'POST':
-        form = UserRegisterForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            return redirect('home')
-    else:
-        form = UserRegisterForm()
-    return render(request, 'shop/register.html', {'form': form})
-
-# --- Логін користувача ---
-def user_login(request):
-    if request.user.is_authenticated:
-        return redirect('profile') 
-
-    if request.method == 'POST':
-        form = LoginForm(request=request, data=request.POST) 
-        if form.is_valid():
-            user = form.get_user()
-            login(request, user)
-            messages.success(request, f"Вітаємо, {user.username}!")
-            return redirect('home')
-        else:
-            messages.error(request, "Неправильне ім’я користувача або пароль.")
-    else:
-        form = LoginForm()
-
-    return render(request, 'shop/login.html', {
-        'form': form,
-        'categories': Category.objects.all()
-    })
-
 # --- Логаут ---
 def user_logout(request):
     logout(request)
     return redirect('home')
 
-# --- Профіль ---
-@login_required
-def profile_view(request):
-    categories = Category.objects.all()
-    products = Product.objects.all()
-    
-    
-    favorites = Favorite.objects.filter(user=request.user).select_related("product")
-    return render(request, "shop/profile.html", {
-        "favorites": favorites,
-        "categories": categories,
-        "products": products,
-    })
-
-@login_required
-def profile_edit_view(request):
-    if request.method == 'POST':
-        form = ProfileEditForm(request.POST, instance=request.user)
-        if form.is_valid():
-            form.save()
-            return redirect('profile')
-    else:
-        form = ProfileEditForm(instance=request.user)
-    
-    return render(request, 'shop/profile_edit.html', {'form': form})
 
 @login_required
 def toggle_favorite(request, product_id):
@@ -268,6 +260,7 @@ def product_list(request):
         "products": products,
         "favorited_ids": favorited_ids,
     })
+
 # --- Деталі продукту ---
 @login_required
 def product_detail(request, product_id):
@@ -374,15 +367,14 @@ def login_email(request):
     return render(request, 'shop/auth.html', {'form': form})
 
 def login_phone_request(request):
+    if request.user.is_authenticated:
+        return redirect('profile')
+
     if request.method == "POST":
         form = PhoneLoginForm(request.POST)
         if form.is_valid():
             phone = form.cleaned_data["phone"]
-            try:
-                user = User.objects.get(phone_number=phone)
-            except User.DoesNotExist:
-                form.add_error("phone", "Користувача з таким номером не існує")
-                return render(request, "shop/auth.html", {"form": form})
+            user = User.objects.get(phone_number=phone)
 
             generate_sms_code(user)
             now = timezone.now()
@@ -395,30 +387,37 @@ def login_phone_request(request):
             request.session["phone_number"] = phone
             request.session.modified = True
 
-
             return redirect("verify_phone_code")
     else:
         form = PhoneLoginForm()
     return render(request, "shop/auth.html", {"form": form})
 
 def register_phone_request(request):
-    if request.method == "POST":
-        form = PhoneLoginForm(request.POST)
-        if form.is_valid():
-            phone = form.cleaned_data["phone"]
-            if User.objects.filter(phone_number=phone).exists():
-                form.add_error("phone", "Користувач з таким номером вже існує")
-                return render(request, "shop/auth.html", {"form": form})
+    if request.user.is_authenticated:
+        return redirect('profile')
 
-            user = User.objects.create_user(username=phone, phone_number=phone)
+    if request.method == "POST":
+        form = PhoneRegisterForm(request.POST)
+        if form.is_valid():
+            phone_clean = form.cleaned_data["phone"]
+
+            user = User.objects.create_user(
+                username = phone_clean,
+                phone_number = phone_clean,
+            )
+
+            user.email = None
+            user.save(update_fields=['email'])
 
             generate_sms_code(user)
+
             request.session["phone_user_id"] = user.id
-            request.session["phone_number"] = phone
-            
+            request.session["phone_number"] = phone_clean
+            request.session.modified = True
+
             return redirect("verify_phone_code")
     else:
-        form = PhoneLoginForm()
+        form = PhoneRegisterForm()
     return render(request, "shop/auth.html", {"form": form})
 
 def verify_phone_code(request):
@@ -473,10 +472,7 @@ def password_reset_request(request):
         form = PasswordResetRequestForm(request.POST)
         if form.is_valid():
             email = form.cleaned_data["email"]
-            try:
-                user = User.objects.get(email=email)
-            except User.DoesNotExist:
-                return render(request, "shop/password_reset.html", {"error": "Користувача не знайдено", "step": "done"})
+            user = User.objects.get(email=email)
 
             token = default_token_generator.make_token(user)
             uid = urlsafe_base64_encode(force_bytes(user.pk))
@@ -507,21 +503,25 @@ def password_reset_confirm(request, uidb64, token):
     except (User.DoesNotExist, ValueError, TypeError, OverflowError):
         user = None
 
-    if user and default_token_generator.check_token(user, token):
-        if request.method == "POST":
-            form = PasswordResetConfirmForm(request.POST)
-            if form.is_valid():
-                new_password = request.POST.get("password")
-                user.password = make_password(new_password)
-                user.save()
-                return render(request, "shop/password_reset.html", {"step": "complete"})
-        else:
-            form = PasswordResetConfirmForm()
-
-        return render(request, "shop/password_reset.html", {"step": "confirm", "form": form})
+    if not user or not default_token_generator.check_token(user, token):
+        form = PasswordResetConfirmForm()
+        return render(request, "shop/password_reset.html", {
+            "step": "confirm",
+            "form": form,
+            "validlink": False
+        })
+    
+    if request.method == "POST":
+        form = PasswordResetConfirmForm(request.POST)
+        if form.is_valid():
+            new_password = request.POST.get("password")
+            user.password = make_password(new_password)
+            user.save()
+            return render(request, "shop/password_reset.html", {"step": "complete"})
     else:
         form = PasswordResetConfirmForm()
-        return render(request, "shop/password_reset.html", {"step": "confirm", "form": form, "validlink": False})
+        
+    return render(request, "shop/password_reset.html", {"step": "confirm", "form": form})
 
 
 def add_to_cart(request, product_id):

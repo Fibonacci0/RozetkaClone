@@ -7,6 +7,8 @@ from django.conf import settings
 class User(AbstractUser):
     email = models.EmailField(unique=True, null=True, blank=True)
     phone_number = models.CharField(max_length=15, unique=True, null=True, blank=True)
+    first_name = models.CharField(max_length=15, blank=True, null=True)
+    last_name = models.CharField(max_length=15, blank=True, null=True)
     #saved_cart = models.JSONField(default=list, blank=True)
 
 
