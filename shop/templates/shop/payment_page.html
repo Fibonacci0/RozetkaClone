@@ -1,2 +1,62 @@
 {% extends "shop/_layout.html" %}
 {% load static %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg p-8 mt-8">
+    <h2 class="text-2xl font-bold mb-6 text-center">Оплата замовлення</h2>
+
+    {% if products %}
+        <table class="w-full text-left mb-6 border-collapse">
+            <thead>
+                <tr class="border-b">
+                    <th class="pb-2">Товар</th>
+                    <th class="pb-2 text-center">Кількість</th>
+                    <th class="pb-2 text-right">Ціна</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in products %}
+                <tr class="border-b">
+                    <td class="py-3 flex items-center space-x-3">
+                        <img src="{{ item.product.get_image }}" alt="{{ item.product.name }}"
+                             class="w-16 h-16 object-cover rounded-lg">
+                        <span class="font-semibold">{{ item.product.name }}</span>
+                    </td>
+                    <td class="text-center">{{ item.quantity }}</td>
+                    <td class="text-right font-bold text-[#00a046]">{{ item.subtotal }} ₴</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="flex justify-between items-center text-xl font-bold mb-6">
+            <span>Разом:</span>
+            <span class="text-[#00a046]">{{ total }} ₴</span>
+        </div>
+
+        <!-- Mock Payment Form -->
+        <form method="post" action="#">
+            {% csrf_token %}
+            <div class="space-y-4">
+                <input type="text" name="card_number" placeholder="Номер картки"
+                       class="w-full border rounded px-3 py-2" required>
+                <div class="flex space-x-4">
+                    <input type="text" name="expiry" placeholder="MM/YY"
+                           class="flex-1 border rounded px-3 py-2" required>
+                    <input type="text" name="cvv" placeholder="CVV"
+                           class="w-24 border rounded px-3 py-2" required>
+                </div>
+                <input type="text" name="name" placeholder="Ім’я власника картки"
+                       class="w-full border rounded px-3 py-2" required>
+            </div>
+
+            <button type="submit"
+                    class="w-full mt-6 bg-green-600 text-white text-lg font-semibold px-6 py-3 rounded-xl shadow hover:bg-green-700 transition">
+                Сплатити
+            </button>
+        </form>
+    {% else %}
+        <p class="text-gray-500 text-center">Ваша корзина порожня.</p>
+    {% endif %}
+</div>
+{% endblock %}

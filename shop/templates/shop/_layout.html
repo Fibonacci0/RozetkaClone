@@ -113,27 +113,26 @@
 <!-- Favorites Modal -->
 <div id="favoritesModal" 
      class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
-  <div class="bg-white w-full max-w-xl max-h-[80vh] p-6 rounded-xl relative shadow-2xl flex flex-col text-left overflow-y-auto">
+  <div class="bg-white w-full max-w-4xl max-h-[80vh] p-6 rounded-2xl relative shadow-2xl flex flex-col text-left overflow-y-auto">
     
     <button id="closeFavoritesModal"
             class="absolute top-4 right-4 text-gray-400 hover:text-black text-2xl leading-none">&times;</button>
 
-    <h2 class="text-2xl font-bold mb-4 text-center">Обрані товари</h2>
+    <h2 class="text-2xl font-bold mb-6 text-center">Ваші обрані товари</h2>
 
-    <div id="favoritesContent" class="relative h-80">
-      <!-- Items -->
-      <div id="favoritesItemsContainer" 
-           class="hidden grid grid-cols-2 gap-4 overflow-y-auto pr-2"></div>
+    <!-- Content -->
+    <div id="favoritesItemsContainer" 
+         class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6"></div>
 
-      <!-- Empty State -->
-      <div id="emptyFavoritesMessage" 
-           class="absolute inset-0 flex flex-col items-center justify-center text-gray-500">
-        <i class="fa-regular fa-heart text-6xl mb-4"></i>
-        <p>У вас поки немає обраних товарів</p>
-      </div>
+    <!-- Empty -->
+    <div id="emptyFavoritesMessage" 
+         class="hidden text-center text-gray-500 mt-10">
+      <i class="fa-regular fa-heart text-6xl mb-4"></i>
+      <p>У вас ще немає обраних товарів.</p>
     </div>
   </div>
 </div>
+
 
 
 
@@ -196,10 +195,16 @@
 
         <!-- Navigation Links -->
         <nav class="px-4 space-y-3 text-gray-800">
-            <a class="flex items-center space-x-2 hover:text-green-600">
+            {% comment %} <a class="flex items-center space-x-2 hover:text-green-600">
                 <i class="fas fa-shopping-cart w-5 text-center"></i>
                 <span>Кошик</span>
-            </a>
+            </a> {% endcomment %}
+
+            <button id="open-cart-modal1"
+                    class="flex-1 flex items-center justify-center gap-2 hover:text-green-600 focus:outline-none">
+                    <i class="fa-solid fa-shopping-cart"></i>
+                    <span>Кошик</span>
+            </button>
             <a href="#" class="flex items-center space-x-2 hover:text-green-600">
                 <i class="fas fa-random w-5 text-center"></i>
                 <span>Списки порівнянь</span>
@@ -251,7 +256,7 @@
                         <span>Чат з TinGo</span>
                     </a> {% endcomment %}
 
-                    <button onclick="openCatalogModal()"
+                    <button 
                         class="flex-1 flex items-center justify-center gap-2 hover:text-green-600">
                         <i class="fa-solid fa-table-cells-large"></i>
                         <span>Каталог</span>
@@ -272,7 +277,7 @@
 
                     <button id="open-cart-modal"
                         class="flex-1 flex items-center justify-center gap-2 hover:text-green-600 focus:outline-none">
-                        <i class="fa-solid fa-basket-shopping"></i>
+                        <i class="fa-solid fa-shopping-cart"></i>
                         <span>Кошик</span>
                     </button>
 
@@ -315,7 +320,7 @@
             </form>
 
             <!-- Icons -->
-            <button class="text-white hover:text-green-600">
+            <button onclick="openFavoritesModal()" class="text-white hover:text-green-600">
                 <i class="fa-regular text-xl fa-heart"></i>
             </button>
             <button class="text-white hover:text-green-600">
@@ -650,6 +655,52 @@ clearFavoritesBtn?.addEventListener("click", () => {
     document.getElementById("emptyFavoritesMessage").classList.remove("hidden");
 });
     </script>
+<script>
+async function loadFavorites() {
+    const favoritesListUrl = "{% url 'favorites_list' %}";
+    const response = await fetch(favoritesListUrl);
+    const data = await response.json();
+
+    const container = document.getElementById("favoritesItemsContainer");
+    const emptyMessage = document.getElementById("emptyFavoritesMessage");
+
+    container.innerHTML = "";
+
+    if (data.items.length > 0) {
+        emptyMessage.classList.add("hidden");
+
+        data.items.forEach(item => {
+            container.innerHTML += `
+              <div class="relative group bg-gray-50 rounded-xl border shadow-sm hover:shadow-md transition overflow-hidden">
+                <a href="/product/${item.id}/">
+                  ${item.image ? `<img src="${item.image}" alt="${item.name}" 
+                          class="w-full h-40 object-cover group-hover:scale-105 transition" />` : ""}
+                  <div class="p-4">
+                    <h4 class="font-semibold text-gray-800 truncate">${item.name}</h4>
+                    <p class="text-[#00a046] font-bold mt-1">${item.price} ₴</p>
+                  </div>
+                </a>
+                <div class="absolute top-2 right-2 text-red-500 cursor-pointer"
+                     onclick="toggleFavorite(${item.id}, this)">
+                  <i class="fas fa-heart"></i>
+                </div>
+              </div>
+            `;
+        });
+    } else {
+        emptyMessage.classList.remove("hidden");
+    }
+}
+
+// Modal open/close
+function openFavoritesModal() {
+    document.getElementById("favoritesModal").classList.remove("hidden");
+    loadFavorites();
+}
+document.getElementById("closeFavoritesModal").onclick = function() {
+    document.getElementById("favoritesModal").classList.add("hidden");
+};
+</script>
 
 
 
