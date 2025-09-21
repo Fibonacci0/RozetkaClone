@@ -254,12 +254,12 @@ def profile_view(request):
 @login_required
 def profile_edit_view(request):
     if request.method == 'POST':
-        form = ProfileEditForm(request.POST, instance=request.user)
+        form = UserProfileForm(request.POST, instance=request.user)
         if form.is_valid():
             form.save()
             return redirect('profile')
     else:
-        form = ProfileEditForm(instance=request.user)
+        form = UserProfileForm(instance=request.user)
     
     return render(request, 'shop/profile_edit.html', {'form': form})
 

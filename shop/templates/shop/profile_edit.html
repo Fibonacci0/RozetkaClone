@@ -1,0 +1,37 @@
+{% extends "shop/_layout.html" %}
+{% load static %}
+
+{% block content %}
+<div class="flex justify-center items-center min-h-screen bg-gray-100">
+  <div class="w-full max-w-xl bg-white border border-gray-200 shadow-lg rounded-2xl p-8 space-y-6">
+
+    <h2 class="text-2xl font-bold text-gray-800 text-center mb-4">
+      Редагування профілю
+    </h2>
+
+    <form method="post" class="space-y-5">
+      {% csrf_token %}
+      {% for field in form %}
+        <div>
+          <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+            {{ field.label }}
+          </label>
+          {{ field }}
+          {% if field.errors %}
+            <p class="text-red-600 text-sm mt-1">{{ field.errors|striptags }}</p>
+          {% endif %}
+        </div>
+      {% endfor %}
+
+      <div class="flex justify-between pt-4">
+        <a href="{% url 'profile' %}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg font-semibold transition">
+          Скасувати
+        </a>
+        <button type="submit" class="bg-[#00a046] hover:bg-[#00913f] text-white px-4 py-2 rounded-lg font-semibold transition">
+          Зберегти
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
