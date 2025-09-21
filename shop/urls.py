@@ -6,8 +6,8 @@ urlpatterns = [
     path('product/<int:product_id>/', views.product_detail, name='product_detail'),
     path('search/', views.search_products, name='search_products'),
     path('all-categories/', views.all_categories, name='all_categories'),
-    path('register/', views.register, name='register'),
-    path('login/', views.user_login, name='login'),
+    # path('register/', views.register, name='register'),
+    # path('login/', views.user_login, name='login'),
     path('logout/', views.user_logout, name='logout'),
     path("profile/", views.profile_view, name="profile"),
     path("profile/password/", views.password_view, name="profile_password"),
@@ -24,4 +24,5 @@ urlpatterns = [
     path('resend_sms/',views.resend_sms, name='resend_sms'),
     path("password-reset/", views.password_reset_request, name="password_reset"),
     path("reset/<uidb64>/<token>/", views.password_reset_confirm, name="password_reset_confirm"),
+    path('favorite/<int:product_id>/', views.toggle_favorite, name='toggle_favorite'),
 ]

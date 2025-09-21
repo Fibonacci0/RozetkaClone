@@ -115,8 +115,6 @@ class UserProfileForm(forms.ModelForm):
         return None
 
 
-
-
 class PasswordChangeForm(forms.Form):
     old_password = forms.CharField(
         label="Старий пароль",
@@ -172,37 +170,6 @@ class PasswordChangeForm(forms.Form):
         if commit:
             self.user.save()
         return self.user
-
-
-class ProfileEditForm(forms.ModelForm):
-    first_name = forms.CharField(
-        label='Ім’я',
-        max_length=30,
-        widget=forms.TextInput(attrs={
-            'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00a046]',
-            'placeholder': 'Ваше ім’я'
-        })
-    )
-    last_name = forms.CharField(
-        label='Прізвище',
-        max_length=30,
-        required=False,
-        widget=forms.TextInput(attrs={
-            'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00a046]',
-            'placeholder': 'Ваше прізвище'
-        })
-    )
-    email = forms.EmailField(
-        label='Email',
-        widget=forms.EmailInput(attrs={
-            'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00a046]',
-            'placeholder': 'example@email.com'
-        })
-    )
-
-    class Meta:
-        model = User
-        fields = ['first_name', 'last_name', 'email']
 
 class EmailLoginForm(forms.Form):
     email = forms.EmailField(
@@ -487,32 +454,6 @@ class PasswordResetConfirmForm(forms.Form):
         if p1 and p2 and p1 != p2:
             self.add_error("password2", "Паролі не співпадають")
         return cleaned_data
-
-class LoginForm(AuthenticationForm):
-    username = forms.CharField(
-        label='Ім’я користувача',
-        widget=forms.TextInput(attrs={
-            'class': 'w-full px-4 py-2 text-base border border-gray-300 rounded-md focus:ring-2 focus:ring-[#00a046] focus:outline-none bg-gray-50'
-        })
-    )
-    password = forms.CharField(
-        label='Пароль',
-        widget=forms.PasswordInput(attrs={
-            'class': 'w-full px-4 py-2 text-base border border-gray-300 rounded-md focus:ring-2 focus:ring-[#00a046] focus:outline-none bg-gray-50'
-        })
-    )
-    
-class UserRegisterForm(UserCreationForm):
-    class Meta:
-        model = User
-        fields = ['username', 'password1', 'password2']
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        for field in self.fields.values():
-            field.widget.attrs.update({
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500'
-            })
 
 class ReviewForm(forms.ModelForm):
     class Meta:
