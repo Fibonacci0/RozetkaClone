@@ -9,11 +9,20 @@ from django.conf import settings
 import requests
 from django.conf import settings
 
+def format_phone_for_sms(phone):
+    phone_digits = phone.replace(" ", "")
+    if not phone_digits.startswith("+38"):
+        phone_digits = "+38" + phone_digits.lstrip("0")
+    formatted = phone_digits[:3] + " " + phone_digits[3:]
+    return formatted
+
 def send_sms_code(phone_number, code):
+    formatted_phone = format_phone_for_sms(phone_number)
+
     url = "https://rest.nexmo.com/sms/json"
     payload = {
         "from": settings.VONAGE_SENDER_ID,
-        "to": phone_number,
+        "to": formatted_phone,
         "text": f"Your code: {code}",
         "api_key": settings.VONAGE_API_KEY,
         "api_secret": settings.VONAGE_API_SECRET,
@@ -43,8 +52,7 @@ def generate_sms_code(user):
 
     print(f"DEBUG: Код для {user.phone_number} -> {code}")
 
-    # send_sms_code(user, code)
-
+    # send_sms_code(user.phone_number, code)
     return code
 
 
