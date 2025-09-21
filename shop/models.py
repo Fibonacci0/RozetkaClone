@@ -86,6 +86,7 @@ class Product(models.Model):
     rating = models.FloatField(default=0.0)
     review_count = models.IntegerField(default=0)
 
+    @property
     def get_image(self):
         if self.image:
             return self.image.url

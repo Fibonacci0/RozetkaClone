@@ -46,6 +46,7 @@ LOGIN_URL = "login_phone_request"
 LOGOUT_URL = "logout"
 LOGOUT_REDIRECT_URL = "."
 LOGIN_REDIRECT_URL = "profile"
+SESSION_ENGINE = "django.contrib.sessions.backends.db"
 
 
 

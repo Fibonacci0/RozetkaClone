@@ -388,10 +388,11 @@ from .models import Cart
 #     })
 
 def payment_page(request):
+    print("DEBUG SESSION CART:", request.session.get("cart"))
     items, total_price = get_cart_items(request)
     if not items:
         messages.error(request, "Ваш кошик порожній")
-        return redirect('cart_page')
+        return redirect('home')
     return render(request, "shop/payment_page.html", {"items": items, "total_price": total_price})
 
 
@@ -577,6 +578,9 @@ def password_reset_confirm(request, uidb64, token):
 
 
 def add_to_cart(request, product_id):
+    if not request.session.session_key:
+        request.session.create()
+
     cart = request.session.get('cart', [])
 
     # шукаємо продукт в кошику
@@ -592,6 +596,7 @@ def add_to_cart(request, product_id):
     return redirect('cart_page')
 
 def cart_page(request):
+    print("DEBUG SESSION CART (cart_page):", request.session.get("cart"))
     cart = request.session.get('cart', [])
     products = Product.objects.filter(id__in=[item['id'] for item in cart])
     return render(request, "shop/cart_page.html", {
@@ -605,17 +610,41 @@ def get_cart_items(request):
     items = []
     total_price = 0
 
+    product_ids = [int(item["id"]) for item in cart]
+    products = {p.id: p for p in Product.objects.filter(id__in=product_ids)}
+
     for item in cart:
-        product = get_object_or_404(Product, id=item['id'])
-        quantity = item['quantity']
+        product_id = int(item["id"])
+        product = products.get(product_id)
+        if not product:
+            continue  # якщо товар видалено з БД
+        quantity = int(item.get("quantity", 1))
         price = product.price * quantity
         total_price += price
-
         items.append({
-            'product': product,
-            'quantity': quantity,
-            'price': price,
+            "product": product,
+            "quantity": quantity,
+            "price": price,
         })
 
     return items, total_price
 
+from django.http import JsonResponse
+
+def cart_json(request):
+    items, total_price = get_cart_items(request)
+    data = {
+        "items": [
+            {
+                "id": item["product"].id,
+                "name": item["product"].name,
+                "price": item["product"].price,
+                "quantity": item["quantity"],
+                "total": item["price"],
+                "image": item["product"].get_image,
+            }
+            for item in items
+        ],
+        "total_price": total_price,
+    }
+    return JsonResponse(data)
