@@ -223,13 +223,15 @@ def user_logout(request):
 def profile_view(request):
     categories = Category.objects.all()
     products = Product.objects.all()
-    
-    
+    user_obj = User.objects.get(id=request.user.id)
+    phone_number = getattr(user_obj, 'phone_number', None)
+        
     favorites = Favorite.objects.filter(user=request.user).select_related("product")
     return render(request, "shop/profile.html", {
         "favorites": favorites,
         "categories": categories,
         "products": products,
+        "phone_number": phone_number,
     })
 
 @login_required

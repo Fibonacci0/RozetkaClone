@@ -32,10 +32,19 @@ class ProfileEditForm(forms.ModelForm):
             'placeholder': 'example@email.com'
         })
     )
+    phone_number = forms.CharField(
+        label='Телефон',
+        max_length=20,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00a046]',
+            'placeholder': '+380 67 123 4567'
+        })
+    )
 
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'email']
+        fields = ['first_name', 'last_name', 'email', 'phone_number']
 
 class EmailLoginForm(forms.Form):
     email = forms.EmailField(
