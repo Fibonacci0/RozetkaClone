@@ -332,9 +332,9 @@ def delete_review(request, review_id):
 
 
 
-def payment_page(request):
-    cart = request.session.get('cart', [])
-    return render(request, 'shop/payment_page.html', {'cart': cart})
+# def payment_page(request):
+#     cart = request.session.get('cart', [])
+#     return render(request, 'shop/payment_page.html', {'cart': cart})
 
 def register_email(request):
     if request.user.is_authenticated:
@@ -530,5 +530,43 @@ def add_to_cart(request, product_id):
     request.session['cart'] = cart
     return redirect('cart_page')
 
+@login_required
+def favorites_list(request):
+    favorites = Favorite.objects.filter(user=request.user).select_related("product")
+    items = []
+    for fav in favorites:
+        product = fav.product
+        items.append({
+            "id": product.id,
+            "name": product.name,
+            "price": str(product.price),
+            "image": product.get_image() if hasattr(product, "get_image") else (product.image.url if product.image else None),
+        })
+    return JsonResponse({"items": items})
+
+def payment_page(request):
+    cart = request.session.get('cart', [])
+    products = []
+    total = 0
+
+    for item in cart:
+        try:
+            product = Product.objects.get(id=item['id'])
+            quantity = item.get('quantity', 1)
+            subtotal = product.price * quantity
+            total += subtotal
+            products.append({
+                'product': product,
+                'quantity': quantity,
+                'subtotal': subtotal
+            })
+        except Product.DoesNotExist:
+            continue
+
+    context = {
+        "products": products,
+        "total": total,
+    }
+    return render(request, "shop/payment_page.html", context)
 
 
