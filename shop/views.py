@@ -263,8 +263,11 @@ def profile_edit_view(request):
     
     return render(request, 'shop/profile_edit.html', {'form': form})
 
-@login_required
+#@login_required
 def toggle_favorite(request, product_id):
+    if not request.user.is_authenticated:
+        return JsonResponse({"login_required": True}, status=401)
+
     product = get_object_or_404(Product, id=product_id)
     favorite, created = Favorite.objects.get_or_create(user=request.user, product=product)
 
@@ -273,10 +276,9 @@ def toggle_favorite(request, product_id):
         return JsonResponse({"favorited": False})
     else:
         return JsonResponse({"favorited": True})
-    
 @login_required
 def product_list(request):
-    products = Product.objects.all()
+    products = Product.objects.filter(available=True)  # only available products
 
     # which products are favorited by this user?
     favorited_ids = set(
@@ -289,7 +291,7 @@ def product_list(request):
     })
 
 # --- Деталі продукту ---
-@login_required
+#@login_required
 def product_detail(request, product_id):
     categories = Category.objects.all()
     product = get_object_or_404(Product, id=product_id)

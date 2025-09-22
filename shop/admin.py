@@ -87,21 +87,21 @@ class CategoryAdmin(admin.ModelAdmin):
     prepopulated_fields = {"slug": ("name",)}
 
 
-@admin.register(Favorite)
-class FavoriteAdmin(admin.ModelAdmin):
-    list_display = ('user', 'product', 'created_at')
-    list_filter = ('created_at',)
-    search_fields = ('user__username', 'product__name')
+# @admin.register(Favorite)
+# class FavoriteAdmin(admin.ModelAdmin):
+#     list_display = ('user', 'product', 'created_at')
+#     list_filter = ('created_at',)
+#     search_fields = ('user__username', 'product__name')
 
 
-@admin.register(PhoneOTP)
-class PhoneOTPAdmin(admin.ModelAdmin):
-    list_display = ('user', 'code', 'created_at', 'expires_at', 'is_valid_status')
-    list_filter = ('created_at', 'expires_at')
-    search_fields = ('user__username', 'code')
+# @admin.register(PhoneOTP)
+# class PhoneOTPAdmin(admin.ModelAdmin):
+#     list_display = ('user', 'code', 'created_at', 'expires_at', 'is_valid_status')
+#     list_filter = ('created_at', 'expires_at')
+#     search_fields = ('user__username', 'code')
 
-    def is_valid_status(self, obj):
-        return obj.is_valid()
-    is_valid_status.boolean = True
-    is_valid_status.short_description = "Is Valid?"
-    readonly_fields = ('created_at', 'expires_at', 'is_valid_status')
+#     def is_valid_status(self, obj):
+#         return obj.is_valid()
+#     is_valid_status.boolean = True
+#     is_valid_status.short_description = "Is Valid?"
+#     readonly_fields = ('created_at', 'expires_at', 'is_valid_status')
