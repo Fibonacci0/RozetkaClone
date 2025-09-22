@@ -2,61 +2,154 @@
 {% load static %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg p-8 mt-8">
-    <h2 class="text-2xl font-bold mb-6 text-center">Оплата замовлення</h2>
+<div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6 my-8">
 
-    {% if products %}
-        <table class="w-full text-left mb-6 border-collapse">
-            <thead>
-                <tr class="border-b">
-                    <th class="pb-2">Товар</th>
-                    <th class="pb-2 text-center">Кількість</th>
-                    <th class="pb-2 text-right">Ціна</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in products %}
-                <tr class="border-b">
-                    <td class="py-3 flex items-center space-x-3">
-                        <img src="{{ item.product.get_image }}" alt="{{ item.product.name }}"
-                             class="w-16 h-16 object-cover rounded-lg">
-                        <span class="font-semibold">{{ item.product.name }}</span>
-                    </td>
-                    <td class="text-center">{{ item.quantity }}</td>
-                    <td class="text-right font-bold text-[#00a046]">{{ item.subtotal }} ₴</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <!-- Основний блок (2/3) -->
+    <div class="lg:col-span-2 space-y-6">
 
-        <div class="flex justify-between items-center text-xl font-bold mb-6">
-            <span>Разом:</span>
-            <span class="text-[#00a046]">{{ total }} ₴</span>
+        <!-- Контактні дані -->
+        <div class="bg-white rounded-xl shadow p-6 space-y-4">
+            <h2 class="text-xl font-semibold">Ваші контактні дані</h2>
+            <div class="space-y-3">
+                <div class="flex items-center justify-between border p-3 rounded-lg">
+                    <span>{{ user.get_full_name|default:user.username }}</span>
+                    <a href="#" class="text-green-600 font-medium">Змінити</a>
+                </div>
+                <div class="flex items-center justify-between border p-3 rounded-lg">
+                    <span>{{ user.profile.city|default:"Місто не вказано" }}</span>
+                    <a href="#" class="text-green-600 font-medium">Змінити</a>
+                </div>
+            </div>
         </div>
 
-        <!-- Mock Payment Form -->
-        <form method="post" action="#">
-            {% csrf_token %}
-            <div class="space-y-4">
-                <input type="text" name="card_number" placeholder="Номер картки"
-                       class="w-full border rounded px-3 py-2" required>
-                <div class="flex space-x-4">
-                    <input type="text" name="expiry" placeholder="MM/YY"
-                           class="flex-1 border rounded px-3 py-2" required>
-                    <input type="text" name="cvv" placeholder="CVV"
-                           class="w-24 border rounded px-3 py-2" required>
-                </div>
-                <input type="text" name="name" placeholder="Ім’я власника картки"
-                       class="w-full border rounded px-3 py-2" required>
-            </div>
+        <!-- Замовлення -->
+        <div class="bg-white rounded-xl shadow p-6 space-y-4">
+            <h2 class="text-xl font-semibold">Замовлення</h2>
 
-            <button type="submit"
-                    class="w-full mt-6 bg-green-600 text-white text-lg font-semibold px-6 py-3 rounded-xl shadow hover:bg-green-700 transition">
-                Сплатити
+            {% if items %}
+            {% for item in items %}
+            <div class="flex items-center justify-between border-b pb-4">
+
+                <!-- Ліва частина: картинка + назва + ціна -->
+                <div class="flex items-center space-x-4">
+                    <img src="{{ item.product.get_image }}" alt="{{ item.product.name }}"
+                        class="w-20 h-20 object-contain rounded">
+                    <div>
+                        <p class="font-medium">{{ item.product.name }}</p>
+                        <p class="text-sm text-gray-500">{{ item.product.price }} ₴ × {{ item.quantity }} од.</p>
+                    </div>
+                </div>
+
+                <!-- Права частина: кнопка видалення -->
+                <div>
+                    <form method="post" action="{% url 'cart_remove' item.product.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="bg-red-600 text-white px-3 py-1 rounded-md hover:bg-red-700">
+                            Видалити
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+            {% endfor %}
+            {% else %}
+            <p class="text-gray-500">Кошик порожній</p>
+            {% endif %}
+        </div>
+
+        <!-- Доставка -->
+        <div class="bg-white rounded-xl shadow p-6 space-y-4">
+            <h2 class="text-xl font-semibold">Доставка</h2>
+            <div class="space-y-3">
+                <label class="flex items-center justify-between border p-3 rounded-lg cursor-pointer">
+                    <div class="flex items-center space-x-2">
+                        <input type="radio" name="delivery" value="shop" class="text-green-600">
+                        <span>Самовивіз з наших магазинів</span>
+                    </div>
+                    <span class="text-green-600 font-medium">Безкоштовно</span>
+                </label>
+                <label class="flex items-center justify-between border p-3 rounded-lg cursor-pointer">
+                    <div class="flex items-center space-x-2">
+                        <input type="radio" name="delivery" value="courier" class="text-green-600">
+                        <span>Кур’єр на вашу адресу</span>
+                    </div>
+                    <span class="text-gray-600">299 ₴</span>
+                </label>
+                <label class="flex items-center justify-between border p-3 rounded-lg cursor-pointer">
+                    <div class="flex items-center space-x-2">
+                        <input type="radio" name="delivery" value="nova_poshta" checked class="text-green-600">
+                        <span>Самовивіз з Нової Пошти</span>
+                    </div>
+                    <button class="ml-auto bg-green-600 text-white px-3 py-1 rounded-lg text-sm">Обрати на мапі</button>
+                </label>
+                <label class="flex items-center justify-between border p-3 rounded-lg cursor-pointer">
+                    <div class="flex items-center space-x-2">
+                        <input type="radio" name="delivery" value="meest" class="text-green-600">
+                        <span>Самовивіз з Meest ПОШТА</span>
+                    </div>
+                    <span class="text-gray-600">55 ₴</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Оплата -->
+        <div class="bg-white rounded-xl shadow p-6 space-y-4">
+            <h2 class="text-xl font-semibold">Оплата</h2>
+            <label class="flex items-center space-x-2">
+                <input type="radio" name="payment" value="card" checked class="text-green-600">
+                <span>Оплатити зараз</span>
+            </label>
+            <div class="border rounded-lg p-4 space-y-3">
+                <p class="font-medium">Карткою онлайн</p>
+                <input type="text" placeholder="Номер картки" class="w-full border rounded-lg p-2">
+                <div class="grid grid-cols-2 gap-3">
+                    <input type="text" placeholder="Термін дії" class="border rounded-lg p-2">
+                    <input type="text" placeholder="CVV" class="border rounded-lg p-2">
+                </div>
+                <button class="w-full bg-gray-200 py-2 rounded-lg">Додати</button>
+            </div>
+            <label class="flex items-center space-x-2">
+                <input type="radio" name="payment" value="gpay" class="text-green-600">
+                <span>Google Pay</span>
+            </label>
+        </div>
+
+        <!-- Отримувач -->
+        <div class="bg-white rounded-xl shadow p-6 space-y-4">
+            <h2 class="text-xl font-semibold">Отримувач</h2>
+            <p>{{ user.get_full_name|default:user.username }}</p>
+        </div>
+
+    </div>
+
+    <!-- Сайдбар -->
+    <aside class="space-y-6">
+        <div class="bg-white rounded-xl shadow p-6 space-y-4">
+            <h2 class="text-lg font-semibold">Разом</h2>
+            <div class="flex justify-between text-gray-600">
+                <span>{{ items|length }} товар(ів) на суму</span>
+                <span>{{ total_price }} ₴</span>
+            </div>
+            <div class="flex justify-between text-gray-600">
+                <span>Вартість доставки</span>
+                <span>За тарифами перевізника</span>
+            </div>
+            <div class="flex justify-between text-lg font-bold">
+                <span>До сплати</span>
+                <span>{{ total_price }} ₴</span>
+            </div>
+            <button class="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700">
+                Замовлення підтверджую
             </button>
-        </form>
-    {% else %}
-        <p class="text-gray-500 text-center">Ваша корзина порожня.</p>
-    {% endif %}
+            <div class="flex items-start space-x-2 text-xs text-gray-600">
+                <input type="checkbox" class="mt-1">
+                <span>
+                    Я підтверджую замовлення, а також погоджуюсь з умовами
+                    <a href="#" class="text-green-600 underline">обробки даних</a>
+                </span>
+            </div>
+        </div>
+    </aside>
+
 </div>
 {% endblock %}

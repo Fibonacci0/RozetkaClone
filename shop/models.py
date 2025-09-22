@@ -57,6 +57,7 @@ class Category(models.Model):
 class Product(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
+    id = models.AutoField(primary_key=True)
 
     image = models.ImageField(upload_to='products/', blank=True, null=True)
     image_url = models.URLField(
@@ -150,3 +151,4 @@ class Review(models.Model):
 
     def __str__(self):
         return f"{self.user.username} — {self.rating}★ для {self.product.name}"
+
