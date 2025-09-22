@@ -293,7 +293,7 @@ def product_list(request):
 def product_detail(request, product_id):
     categories = Category.objects.all()
     product = get_object_or_404(Product, id=product_id)
-    reviews = product.reviews.select_related('user').order_by('-created_at')
+    reviews = product.reviews.select_related('user').order_by('-created_at') # type: ignore
 
     user_review_exists = False
     is_favorited = False
@@ -323,7 +323,7 @@ def product_detail(request, product_id):
 def review_form(request, product_id=None, review_id=None):
     if review_id:
         review = get_object_or_404(Review, id=review_id, user=request.user)
-        product = get_object_or_404(Product, id=review.product.id)
+        product = get_object_or_404(Product, id=review.product.id) # type: ignore
         is_edit = True
     else:
         review = None
@@ -337,7 +337,7 @@ def review_form(request, product_id=None, review_id=None):
             review.user = request.user
             review.product = product
             review.save()
-            return redirect('product_detail', product_id=product.id)
+            return redirect('product_detail', product_id=product.id) # type: ignore
     else:
         form = ReviewForm(instance=review)
 
@@ -351,7 +351,7 @@ def review_form(request, product_id=None, review_id=None):
 @login_required
 def delete_review(request, review_id):
     review = get_object_or_404(Review, id=review_id, user=request.user)
-    product_id = review.product.id
+    product_id = review.product.id # type: ignore
 
     if request.method == 'POST':
         review.delete()
@@ -410,7 +410,7 @@ def login_phone_request(request):
             if active_code:
                 request.session["otp_expires_at"] = active_code.expires_at.isoformat()
 
-            request.session["phone_user_id"] = user.id
+            request.session["phone_user_id"] = user.id # type: ignore
             request.session["phone_number"] = phone
             request.session.modified = True
 
