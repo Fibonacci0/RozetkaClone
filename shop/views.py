@@ -7,9 +7,12 @@ from django.contrib import messages
 from django.db.models import Q, Max  # <- додав сюди Max
 from django.db.models import Min, Max
 from .models import Category, Favorite, Product, Promo, Review
+from .forms import ProfileEditForm, UserRegisterForm, ReviewForm, LoginForm
 from django.conf import settings
+from django.http import HttpResponseRedirect
 from .utils import generate_sms_code, verify_sms_code
 from django.utils import timezone
+from django.http import JsonResponse
 from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode
@@ -20,11 +23,7 @@ from django.utils.http import urlsafe_base64_decode
 from django.contrib.auth.hashers import make_password
 from django.template.loader import render_to_string
 from .models import Category, Product, Promo, Review, PhoneOTP
-from .forms import ReviewForm, EmailRegisterForm, EmailLoginForm, PhoneLoginForm, PhoneRegisterForm, VerifySMSForm, PasswordResetRequestForm, PasswordResetConfirmForm, UserProfileForm, PasswordChangeForm
-from django.urls import reverse
-
-from django.contrib.auth import update_session_auth_hash
-
+from .forms import ProfileEditForm, UserRegisterForm, ReviewForm, EmailRegisterForm, EmailLoginForm, PhoneLoginForm, VerifySMSForm, PasswordResetRequestForm, PasswordResetConfirmForm
 from django.http import HttpResponseRedirect, JsonResponse
 
 User = get_user_model()
@@ -161,56 +160,6 @@ def category_detail(request, slug):
     return render(request, 'shop/home.html', context)
 
 
-@login_required
-def profile_view(request):
-    user = request.user
-    warnings = []
-
-    if not user.has_usable_password() and user.email:
-        warnings.append({
-            'message': 'У вашому акаунті наразі немає пароля для входу. '
-                       'Щоб уникнути проблем із входом, рекомендуємо встановити пароль.',
-            'link': reverse('profile_password'),
-            'type': 'warning'
-        })
-
-    if request.method == "POST":
-        form = UserProfileForm(request.POST, request.FILES, instance=user)
-        if form.is_valid():
-            user = form.save(commit=False)
-
-            for field in ['first_name', 'last_name', 'email', 'phone_number']:
-                value = getattr(user, field)
-                if value == '':
-                    setattr(user, field, None)
-
-            user.save()
-            return redirect('profile')
-    else:
-        form = UserProfileForm(instance=user)
-    
-    return render(request, 'shop/account/profile.html', {
-        'form': form,
-        'warnings': warnings,
-        })
-
-@login_required
-def password_view(request):
-    if request.method == "POST":
-        form = PasswordChangeForm(request.user, request.POST)
-        if form.is_valid():
-            user = form.save()
-            update_session_auth_hash(request, user)
-            return redirect("profile_password")
-    else:
-        form = PasswordChangeForm(request.user)
-
-    return render(request, "shop/account/password.html", {"form": form})
-
-@login_required
-def other_view(request):
-    return render(request, "shop/account/other.html")
-
 # --- Пошук продуктів ---
 def search_products(request):
     categories = Category.objects.all()
@@ -230,6 +179,40 @@ def all_categories(request):
     categories = Category.objects.all()
     return render(request, 'shop/all_categories.html', {'categories': categories})
 
+# --- Реєстрація користувача ---
+def register(request):
+    if request.method == 'POST':
+        form = UserRegisterForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            return redirect('home')
+    else:
+        form = UserRegisterForm()
+    return render(request, 'shop/register.html', {'form': form})
+
+# --- Логін користувача ---
+def user_login(request):
+    if request.user.is_authenticated:
+        return redirect('profile') 
+
+    if request.method == 'POST':
+        form = LoginForm(request=request, data=request.POST) 
+        if form.is_valid():
+            user = form.get_user()
+            login(request, user)
+            messages.success(request, f"Вітаємо, {user.username}!")
+            return redirect('home')
+        else:
+            messages.error(request, "Неправильне ім’я користувача або пароль.")
+    else:
+        form = LoginForm()
+
+    return render(request, 'shop/login.html', {
+        'form': form,
+        'categories': Category.objects.all()
+    })
+
 # --- Логаут ---
 def user_logout(request):
     logout(request)
@@ -240,34 +223,29 @@ def user_logout(request):
 def profile_view(request):
     categories = Category.objects.all()
     products = Product.objects.all()
-    user_obj = User.objects.get(id=request.user.id)
-    phone_number = getattr(user_obj, 'phone_number', None)
-        
+    
+    
     favorites = Favorite.objects.filter(user=request.user).select_related("product")
     return render(request, "shop/profile.html", {
         "favorites": favorites,
         "categories": categories,
         "products": products,
-        "phone_number": phone_number,
     })
 
 @login_required
 def profile_edit_view(request):
     if request.method == 'POST':
-        form = UserProfileForm(request.POST, instance=request.user)
+        form = ProfileEditForm(request.POST, instance=request.user)
         if form.is_valid():
             form.save()
             return redirect('profile')
     else:
-        form = UserProfileForm(instance=request.user)
+        form = ProfileEditForm(instance=request.user)
     
     return render(request, 'shop/profile_edit.html', {'form': form})
 
-#@login_required
+@login_required
 def toggle_favorite(request, product_id):
-    if not request.user.is_authenticated:
-        return JsonResponse({"login_required": True}, status=401)
-
     product = get_object_or_404(Product, id=product_id)
     favorite, created = Favorite.objects.get_or_create(user=request.user, product=product)
 
@@ -276,9 +254,10 @@ def toggle_favorite(request, product_id):
         return JsonResponse({"favorited": False})
     else:
         return JsonResponse({"favorited": True})
+    
 @login_required
 def product_list(request):
-    products = Product.objects.filter(available=True)  # only available products
+    products = Product.objects.all()
 
     # which products are favorited by this user?
     favorited_ids = set(
@@ -289,9 +268,8 @@ def product_list(request):
         "products": products,
         "favorited_ids": favorited_ids,
     })
-
 # --- Деталі продукту ---
-#@login_required
+@login_required
 def product_detail(request, product_id):
     categories = Category.objects.all()
     product = get_object_or_404(Product, id=product_id)
@@ -361,9 +339,61 @@ def delete_review(request, review_id):
 
 
 
+from django.shortcuts import render, redirect
+
 # def payment_page(request):
-#     cart = request.session.get('cart', [])
-#     return render(request, 'shop/payment_page.html', {'cart': cart})
+#     # Отримуємо кошик для поточного користувача (за user або session)
+#     if request.user.is_authenticated:
+#         cart, created = Cart.objects.get_or_create(user=request.user)
+#     else:
+#         # Якщо неавторизований, тоді кошик через session_key
+#         session_key = request.session.session_key
+#         if not session_key:
+#             request.session.create()
+#         cart, created = Cart.objects.get_or_create(session_key=request.session.session_key)
+
+#     return render(request, "shop/payment_page.html", {
+#         "cart": cart,
+#         "user": request.user
+#     })
+
+# def payment_page(request):
+#     cart = request.session.get("cart", [])
+#     print("!!!!!!!!", cart)
+#     items = []
+#     total_price = 0
+
+#     # cart може бути або dict з id -> {...}, або просто список dict'ів
+#     if isinstance(cart, dict):  
+#         cart = [cart]  # перетворимо на список для зручності
+
+#     for item in cart:
+#         product_id = item.get("id")   # тут зчитуємо правильно
+#         quantity = item.get("quantity", 1)
+
+#         product = get_object_or_404(Product, id=product_id)
+#         price = product.price * quantity
+#         total_price += price
+
+#         items.append({
+#             "product": product,
+#             "quantity": quantity,
+#             "price": price,
+#         })
+
+#     return render(request, "shop/payment_page.html", {
+#         "items": items,
+#         "total_price": total_price,
+#     })
+
+def payment_page(request):
+    print("DEBUG SESSION CART:", request.session.get("cart"))
+    items, total_price = get_cart_items(request)
+    if not items:
+        messages.error(request, "Ваш кошик порожній")
+        return redirect('home')
+    return render(request, "shop/payment_page.html", {"items": items, "total_price": total_price})
+
 
 def register_email(request):
     if request.user.is_authenticated:
@@ -396,14 +426,15 @@ def login_email(request):
     return render(request, 'shop/auth.html', {'form': form})
 
 def login_phone_request(request):
-    if request.user.is_authenticated:
-        return redirect('profile')
-
     if request.method == "POST":
         form = PhoneLoginForm(request.POST)
         if form.is_valid():
             phone = form.cleaned_data["phone"]
-            user = User.objects.get(phone_number=phone)
+            try:
+                user = User.objects.get(phone_number=phone)
+            except User.DoesNotExist:
+                form.add_error("phone", "Користувача з таким номером не існує")
+                return render(request, "shop/auth.html", {"form": form})
 
             generate_sms_code(user)
             now = timezone.now()
@@ -416,37 +447,30 @@ def login_phone_request(request):
             request.session["phone_number"] = phone
             request.session.modified = True
 
+
             return redirect("verify_phone_code")
     else:
         form = PhoneLoginForm()
     return render(request, "shop/auth.html", {"form": form})
 
 def register_phone_request(request):
-    if request.user.is_authenticated:
-        return redirect('profile')
-
     if request.method == "POST":
-        form = PhoneRegisterForm(request.POST)
+        form = PhoneLoginForm(request.POST)
         if form.is_valid():
-            phone_clean = form.cleaned_data["phone"]
+            phone = form.cleaned_data["phone"]
+            if User.objects.filter(phone_number=phone).exists():
+                form.add_error("phone", "Користувач з таким номером вже існує")
+                return render(request, "shop/auth.html", {"form": form})
 
-            user = User.objects.create_user(
-                username = phone_clean,
-                phone_number = phone_clean,
-            )
-
-            user.email = None
-            user.save(update_fields=['email'])
+            user = User.objects.create_user(username=phone, phone_number=phone)
 
             generate_sms_code(user)
-
-            request.session["phone_user_id"] = user.id
-            request.session["phone_number"] = phone_clean
-            request.session.modified = True
-
+            request.session["phone_user_id"] = user.id # type: ignore
+            request.session["phone_number"] = phone
+            
             return redirect("verify_phone_code")
     else:
-        form = PhoneRegisterForm()
+        form = PhoneLoginForm()
     return render(request, "shop/auth.html", {"form": form})
 
 def verify_phone_code(request):
@@ -501,7 +525,10 @@ def password_reset_request(request):
         form = PasswordResetRequestForm(request.POST)
         if form.is_valid():
             email = form.cleaned_data["email"]
-            user = User.objects.get(email=email)
+            try:
+                user = User.objects.get(email=email)
+            except User.DoesNotExist:
+                return render(request, "shop/password_reset.html", {"error": "Користувача не знайдено", "step": "done"})
 
             token = default_token_generator.make_token(user)
             uid = urlsafe_base64_encode(force_bytes(user.pk))
@@ -532,70 +559,117 @@ def password_reset_confirm(request, uidb64, token):
     except (User.DoesNotExist, ValueError, TypeError, OverflowError):
         user = None
 
-    if not user or not default_token_generator.check_token(user, token):
-        form = PasswordResetConfirmForm()
-        return render(request, "shop/password_reset.html", {
-            "step": "confirm",
-            "form": form,
-            "validlink": False
-        })
-    
-    if request.method == "POST":
-        form = PasswordResetConfirmForm(request.POST)
-        if form.is_valid():
-            new_password = request.POST.get("password")
-            user.password = make_password(new_password)
-            user.save()
-            return render(request, "shop/password_reset.html", {"step": "complete"})
+    if user and default_token_generator.check_token(user, token):
+        if request.method == "POST":
+            form = PasswordResetConfirmForm(request.POST)
+            if form.is_valid():
+                new_password = request.POST.get("password")
+                user.password = make_password(new_password)
+                user.save()
+                return render(request, "shop/password_reset.html", {"step": "complete"})
+        else:
+            form = PasswordResetConfirmForm()
+
+        return render(request, "shop/password_reset.html", {"step": "confirm", "form": form})
     else:
         form = PasswordResetConfirmForm()
-        
-    return render(request, "shop/password_reset.html", {"step": "confirm", "form": form})
+        return render(request, "shop/password_reset.html", {"step": "confirm", "form": form, "validlink": False})
 
 
 def add_to_cart(request, product_id):
+    if not request.session.session_key:
+        request.session.create()
+
     cart = request.session.get('cart', [])
-    cart.append({'id': product_id, 'quantity': 1})
+
+    # шукаємо продукт в кошику
+    for item in cart:
+        if item['id'] == product_id:
+            item['quantity'] += 1
+            break
+    else:
+        cart.append({'id': product_id, 'quantity': 1})
+
     request.session['cart'] = cart
+    request.session.modified = True
     return redirect('cart_page')
+
+def cart_page(request):
+    print("DEBUG SESSION CART (cart_page):", request.session.get("cart"))
+    cart = request.session.get('cart', [])
+    products = Product.objects.filter(id__in=[item['id'] for item in cart])
+    return render(request, "shop/cart_page.html", {
+        "cart": cart,
+        "products": products,
+    })
+
+
+def get_cart_items(request):
+    cart = request.session.get('cart', [])
+    items = []
+    total_price = 0
+
+    product_ids = [int(item["id"]) for item in cart]
+    products = {p.id: p for p in Product.objects.filter(id__in=product_ids)} # type: ignore
+
+    for item in cart:
+        product_id = int(item["id"])
+        product = products.get(product_id)
+        if not product:
+            continue  # якщо товар видалено з БД
+        quantity = int(item.get("quantity", 1))
+        price = product.price * quantity
+        total_price += price
+        items.append({
+            "product": product,
+            "quantity": quantity,
+            "price": price,
+        })
+
+    return items, total_price
+
+from django.http import JsonResponse
+
+def cart_json(request):
+    items, total_price = get_cart_items(request)
+    data = {
+        "items": [
+            {
+                "id": item["product"].id,
+                "name": item["product"].name,
+                "price": item["product"].price,
+                "quantity": item["quantity"],
+                "total": item["price"],
+                "image": item["product"].get_image,
+            }
+            for item in items
+        ],
+        "total_price": total_price,
+    }
+    return JsonResponse(data)
+
+def cart_remove(request, pk):
+    cart = request.session.get('cart', [])
+    pk = int(pk)
+
+    # видаляємо товар з кошика
+    cart = [item for item in cart if int(item["id"]) != pk]
+
+    request.session['cart'] = cart
+    request.session.modified = True
+    return redirect('payment_page')
 
 @login_required
 def favorites_list(request):
+    """Повертає JSON зі всіма улюбленими товарами користувача"""
     favorites = Favorite.objects.filter(user=request.user).select_related("product")
-    items = []
-    for fav in favorites:
-        product = fav.product
-        items.append({
-            "id": product.id,
-            "name": product.name,
-            "price": str(product.price),
-            "image": product.get_image() if hasattr(product, "get_image") else (product.image.url if product.image else None),
-        })
+    items = [
+        {
+            "id": f.product.id,
+            "name": f.product.name,
+            "price": f.product.price,
+            "image": f.product.get_image if hasattr(f.product, "get_image") else "",
+        }
+        for f in favorites
+    ]
     return JsonResponse({"items": items})
-
-def payment_page(request):
-    cart = request.session.get('cart', [])
-    products = []
-    total = 0
-
-    for item in cart:
-        try:
-            product = Product.objects.get(id=item['id'])
-            quantity = item.get('quantity', 1)
-            subtotal = product.price * quantity
-            total += subtotal
-            products.append({
-                'product': product,
-                'quantity': quantity,
-                'subtotal': subtotal
-            })
-        except Product.DoesNotExist:
-            continue
-
-    context = {
-        "products": products,
-        "total": total,
-    }
-    return render(request, "shop/payment_page.html", context)
-
-
