@@ -102,7 +102,10 @@ class UserProfileForm(forms.ModelForm):
     def clean_phone_number(self):
         phone = self.cleaned_data.get('phone_number')
         if phone:
-            return phone.replace(" ", "")
+            phone = phone.replace(" ", "")
+            if User.objects.exclude(pk=self.instance.pk).filter(phone_number=phone).exists():
+                raise forms.ValidationError("Користувач з таким номером телефону вже існує.")
+            return phone
         return None
     
     def clean_email(self):
@@ -111,6 +114,8 @@ class UserProfileForm(forms.ModelForm):
             email = email.strip()
             if email == "":
                 return None
+            if User.objects.exclude(pk=self.instance.pk).filter(email=email).exists():
+                raise forms.ValidationError("Користувач з такою поштою вже існує.")
             return email
         return None
 
@@ -148,7 +153,7 @@ class PasswordChangeForm(forms.Form):
     def clean_old_password(self):
         old_password = self.cleaned_data.get("old_password")
         if self.user.has_usable_password() and not self.user.check_password(old_password):
-            raise forms.ValidationError("Неправильний старий пароль.")
+            self.add_error('old_password', "Старий пароль неправильний.")
         return old_password
 
     def clean(self):
@@ -157,10 +162,17 @@ class PasswordChangeForm(forms.Form):
         password2 = cleaned_data.get("new_password2")
 
         if password1 and password2 and password1 != password2:
-            raise forms.ValidationError("Паролі не співпадають.")
+            self.add_error('new_password2', "Паролі не співпадають.")
 
         if password1:
-            password_validation.validate_password(password1, self.user)
+            errors = []
+            for validator in password_validation.get_default_password_validators():
+                try:
+                    validator.validate(password1, self.user)
+                except forms.ValidationError as e:
+                    errors.extend(e.messages)
+            for msg in errors:
+                self.add_error('new_password1', msg)
 
         return cleaned_data
 
@@ -449,10 +461,20 @@ class PasswordResetConfirmForm(forms.Form):
 
     def clean(self):
         cleaned_data = super().clean()
-        p1 = cleaned_data.get("password")
-        p2 = cleaned_data.get("password2")
-        if p1 and p2 and p1 != p2:
+        password = cleaned_data.get("password")
+        password2 = cleaned_data.get("password2")
+        if password and password2 and password != password2:
             self.add_error("password2", "Паролі не співпадають")
+
+        if password:
+            errors = []
+            for validator in password_validation.get_default_password_validators():
+                try:
+                    validator.validate(password)
+                except forms.ValidationError as e:
+                    errors.extend(e.messages)
+            for msg in errors:
+                self.add_error("password", msg)
         return cleaned_data
 
 class ReviewForm(forms.ModelForm):
