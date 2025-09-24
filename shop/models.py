@@ -90,6 +90,8 @@ class Product(models.Model):
     created_at = models.DateTimeField(default=timezone.now)
     rating = models.FloatField(default=0.0)
     review_count = models.IntegerField(default=0)
+    #in_stock = models.BooleanField(default=True)
+
 
     def get_image(self):
         if self.image:
