@@ -346,6 +346,13 @@ def product_detail(request, product_id):
 # --- Форма відгуку ---
 @login_required
 def review_form(request, product_id=None, review_id=None):
+    user_email = request.user.email if request.user.is_authenticated else ""
+    product = get_object_or_404(Product, id=product_id) if product_id else None
+    # Маскуємо email: 3 символи + ***
+    masked_email = ""
+    if user_email and "@" in user_email:
+        name, domain = user_email.split("@", 1)
+        masked_email = f"{name[:3]}***@{domain}"
     if review_id:
         review = get_object_or_404(Review, id=review_id, user=request.user)
         product = get_object_or_404(Product, id=review.product.id) # type: ignore
@@ -369,6 +376,7 @@ def review_form(request, product_id=None, review_id=None):
     return render(request, 'shop/review_form.html', {
         'form': form,
         'product': product,
+        'masked_email': masked_email,
         'is_edit': is_edit
     })
 
@@ -720,7 +728,7 @@ def favorites_list(request):
             "id": f.product.id,
             "name": f.product.name,
             "price": f.product.price,
-            "image": f.product.get_image if hasattr(f.product, "get_image") else "",
+            "image": f.product.get_image() if hasattr(f.product, "get_image") else "",
         }
         for f in favorites
     ]
