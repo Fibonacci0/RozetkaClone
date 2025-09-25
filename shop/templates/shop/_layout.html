@@ -118,23 +118,73 @@
     </div>
 <!-- Favorites Modal -->
 <div id="favoritesModal" 
-     class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
-  <div class="bg-white w-full max-w-4xl max-h-[80vh] p-6 rounded-2xl relative shadow-2xl flex flex-col text-left overflow-y-auto">
+     class="fixed inset-0 bg-black bg-opacity-60 z-50 hidden items-center justify-center p-4">
+  <div class="bg-white w-full max-w-4xl max-h-[85vh] rounded-2xl relative shadow-2xl flex flex-col overflow-hidden transform transition-all duration-300 scale-95 opacity-0" 
+       id="favoritesModalContent">
     
-    <button id="closeFavoritesModal"
-            class="absolute top-4 right-4 text-gray-400 hover:text-black text-2xl leading-none">&times;</button>
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-green-50 to-emerald-50 px-6 py-4 border-b border-gray-200">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center shadow-md">
+            <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"/>
+            </svg>
+          </div>
+          <div>
+            <h2 class="text-2xl font-bold text-gray-800">Ваші обрані товари</h2>
+            <p class="text-gray-600 text-sm">Збережені для майбутніх покупок</p>
+          </div>
+        </div>
+        
+        <div class="flex items-center space-x-3">
+          <span id="favoritesCount" class="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold">0</span>
+          <button id="clearAllBtn" 
+                  class="text-gray-500 hover:text-red-500 transition-colors duration-200 p-2 rounded-lg hover:bg-red-50"
+                  title="Очистити всі">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+            </svg>
+          </button>
+          <button id="closeFavoritesModal"
+                  class="text-gray-500 hover:text-gray-800 transition-colors duration-200 p-2 rounded-lg hover:bg-gray-100">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
 
-    <h2 class="text-2xl font-bold mb-6 text-center">Ваші обрані товари</h2>
+    <!-- Content Area -->
+    <div class="flex-1 overflow-y-auto p-6">
+      <!-- Loading State -->
+      <div id="loadingState" class="hidden text-center py-16">
+        <div class="inline-block w-12 h-12 border-4 border-green-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p class="text-gray-600">Завантаження обраних товарів...</p>
+      </div>
 
-    <!-- Content -->
-    <div id="favoritesItemsContainer" 
-         class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6"></div>
+      <!-- Items Grid -->
+      <div id="favoritesItemsContainer" 
+           class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
 
-    <!-- Empty -->
-    <div id="emptyFavoritesMessage" 
-         class="hidden text-center text-gray-500 mt-10">
-      <i class="fa-regular fa-heart text-6xl mb-4"></i>
-      <p>У вас ще немає обраних товарів.</p>
+      <!-- Empty State -->
+      <div id="emptyFavoritesMessage" 
+           class="hidden text-center py-12">
+        <div class="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center shadow-lg transform hover:scale-105 transition-transform duration-300">
+          <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+          </svg>
+        </div>
+        <h3 class="text-xl font-bold text-gray-800 mb-3">Тут порожньо !</h3>
+        <p class="text-gray-600 mb-6 max-w-sm mx-auto">У вас ще немає обраних товарів. Додайте товари до улюблених, щоб швидко знаходити їх пізніше.</p>
+        <button class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors duration-200 font-semibold shadow-md hover:shadow-lg transform hover:scale-105">
+          <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+          </svg>
+          Почати покупки
+        </button>
+      </div>
     </div>
   </div>
 </div>
@@ -638,74 +688,178 @@
         }
     </script>
     <script>
-        // Favorites Modal
+// Favorites Modal
 const favoritesModal = document.getElementById("favoritesModal");
+const favoritesModalContent = document.getElementById("favoritesModalContent");
 const closeFavoritesModal = document.getElementById("closeFavoritesModal");
 const favoritesBtn = document.querySelector("button .fa-heart")?.parentElement;
-const clearFavoritesBtn = document.getElementById("clearFavoritesBtn");
+const clearAllBtn = document.getElementById("clearAllBtn");
 
+// Event listeners for modal
 favoritesBtn?.addEventListener("click", () => {
-    favoritesModal.classList.remove("hidden");
-});
-closeFavoritesModal?.addEventListener("click", () => {
-    favoritesModal.classList.add("hidden");
-});
-favoritesModal?.addEventListener("click", (e) => {
-    if (e.target === favoritesModal) favoritesModal.classList.add("hidden");
+    openFavoritesModal();
 });
 
-// Clear favorites example (frontend only, you can connect Django later)
-clearFavoritesBtn?.addEventListener("click", () => {
-    document.getElementById("favoritesItemsContainer").innerHTML = "";
-    document.getElementById("favoritesItemsContainer").classList.add("hidden");
-    document.getElementById("emptyFavoritesMessage").classList.remove("hidden");
+closeFavoritesModal?.addEventListener("click", () => {
+    closeFavoritesModalFunc();
 });
-    </script>
-<script>
+
+favoritesModal?.addEventListener("click", (e) => {
+    if (e.target === favoritesModal) {
+        closeFavoritesModalFunc();
+    }
+});
+
+// Escape key to close
+document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !favoritesModal.classList.contains("hidden")) {
+        closeFavoritesModalFunc();
+    }
+});
+
+// Open modal function
+function openFavoritesModal() {
+    favoritesModal.classList.remove("hidden");
+    favoritesModal.classList.add("flex");
+    
+    // Trigger animation
+    setTimeout(() => {
+        favoritesModalContent.classList.remove("scale-95", "opacity-0");
+        favoritesModalContent.classList.add("scale-100", "opacity-100");
+    }, 10);
+    
+    loadFavorites();
+}
+
+// Close modal function
+function closeFavoritesModalFunc() {
+    favoritesModalContent.classList.remove("scale-100", "opacity-100");
+    favoritesModalContent.classList.add("scale-95", "opacity-0");
+    
+    setTimeout(() => {
+        favoritesModal.classList.add("hidden");
+        favoritesModal.classList.remove("flex");
+    }, 300);
+}
+
+// Load favorites function
 async function loadFavorites() {
     const favoritesListUrl = "{% url 'favorites_list' %}";
-    const response = await fetch(favoritesListUrl);
-    const data = await response.json();
-
     const container = document.getElementById("favoritesItemsContainer");
     const emptyMessage = document.getElementById("emptyFavoritesMessage");
-
-    container.innerHTML = "";
-
-    if (data.items.length > 0) {
-        emptyMessage.classList.add("hidden");
-
-        data.items.forEach(item => {
-            container.innerHTML += `
-              <div class="relative group bg-gray-50 rounded-xl border shadow-sm hover:shadow-md transition overflow-hidden">
-                <a href="/product/${item.id}/">
-                  ${item.image ? `<img src="${item.image}" alt="${item.name}" 
-                          class="w-full h-40 object-cover group-hover:scale-105 transition" />` : ""}
-                  <div class="p-4">
-                    <h4 class="font-semibold text-gray-800 truncate">${item.name}</h4>
-                    <p class="text-[#00a046] font-bold mt-1">${item.price} ₴</p>
-                  </div>
-                </a>
-                <div class="absolute top-2 right-2 text-red-500 cursor-pointer"
-                     onclick="toggleFavorite(${item.id}, this)">
-                  <i class="fas fa-heart"></i>
-                </div>
-              </div>
-            `;
-        });
-    } else {
+    const loadingState = document.getElementById("loadingState");
+    const countBadge = document.getElementById("favoritesCount");
+    
+    // Show loading state
+    container.innerHTML = ""; // Clear existing items to prevent duplicates
+    emptyMessage.classList.add("hidden");
+    loadingState.classList.remove("hidden");
+    
+    try {
+        const response = await fetch(favoritesListUrl);
+        const data = await response.json();
+        
+        loadingState.classList.add("hidden");
+        
+        if (data.items && data.items.length > 0) {
+            countBadge.textContent = data.items.length;
+            
+            // Create items string first, then set innerHTML once
+            let itemsHTML = '';
+            data.items.forEach((item, index) => {
+                itemsHTML += `
+                    <div class="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-200 overflow-hidden group" 
+                         style="animation: fadeInUp 0.5s ease-out ${index * 0.1}s both;">
+                        <div class="aspect-square overflow-hidden relative bg-gray-100">
+                            <a href="/product/${item.id}/" class="block"/>
+                            ${item.image ? `
+                                <img src="${item.image}" alt="${item.name}"
+                                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                            ` : `
+                                <div class="w-full h-full flex items-center justify-center text-gray-400">
+                                    <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 002 2v12a2 2 0 002 2z"/>
+                                    </svg>
+                                </div>
+                            `}
+                            
+                            <div class="absolute top-2 right-2">
+                                <button class="w-8 h-8 bg-white/90 rounded-full flex items-center justify-center text-red-500 hover:bg-red-50 transition-colors duration-200 shadow-md"
+                                        onclick="toggleFavorite(${item.id}, this)">
+                                    <i class="fas fa-heart text-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="p-4">
+                            <a href="/product/${item.id}/" class="block">
+                                <h4 class="font-semibold text-gray-800 text-base mb-2 line-clamp-2">
+                                    ${item.name}
+                                </h4>
+                            </a>
+                            
+                            <div class="flex items-center justify-between">
+                                <span class="text-lg font-bold text-green-600">${item.price} ₴</span>
+                                <button class="bg-green-600 text-white px-3 py-1 rounded-md hover:bg-green-700 transition-colors duration-200 text-sm font-medium">
+                                    Купити
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = itemsHTML; // Set all items at once
+        } else {
+            countBadge.textContent = "0";
+            emptyMessage.classList.remove("hidden");
+        }
+    } catch (error) {
+        console.error('Error loading favorites:', error);
+        loadingState.classList.add("hidden");
         emptyMessage.classList.remove("hidden");
+        countBadge.textContent = "0";
     }
 }
 
-// Modal open/close
-function openFavoritesModal() {
-    document.getElementById("favoritesModal").classList.remove("hidden");
-    loadFavorites();
-}
-document.getElementById("closeFavoritesModal").onclick = function() {
-    document.getElementById("favoritesModal").classList.add("hidden");
-};
+// Clear all favorites (frontend only - you can connect Django later)
+clearAllBtn?.addEventListener("click", () => {
+    if (confirm("Ви впевнені, що хочете видалити всі обрані товари?")) {
+        const container = document.getElementById("favoritesItemsContainer");
+        const items = container.querySelectorAll('.group');
+        
+        // Animate removal
+        items.forEach((item, index) => {
+            setTimeout(() => {
+                item.style.transform = "translateY(-30px) scale(0.8)";
+                item.style.opacity = "0";
+            }, index * 50);
+        });
+        
+        // Clear after animation
+        setTimeout(() => {
+            container.innerHTML = "";
+            document.getElementById("emptyFavoritesMessage").classList.remove("hidden");
+            document.getElementById("favoritesCount").textContent = "0";
+        }, items.length * 50 + 300);
+    }
+});
+
+// Add CSS animation keyframes
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+`;
+document.head.appendChild(style);
 </script>
 
 

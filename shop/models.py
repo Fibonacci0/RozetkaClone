@@ -116,7 +116,7 @@ class Promo(models.Model):
     description = models.TextField(blank=True)
 
     # загзука свого зображення
-    image = models.ImageField(upload_to='products/', blank=True, null=True)
+    image = models.ImageField(upload_to='images/', blank=True, null=True)
 
     # URL
     image_url = models.URLField(
