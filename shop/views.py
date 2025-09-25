@@ -718,7 +718,7 @@ def favorites_list(request):
             "id": f.product.id,
             "name": f.product.name,
             "price": f.product.price,
-            "image": f.product.get_image if hasattr(f.product, "get_image") else "",
+            "image": f.product.get_image() if hasattr(f.product, "get_image") else "",
         }
         for f in favorites
     ]
