@@ -1,125 +1,185 @@
 {% extends "shop/_layout.html" %}
+{% load shop_extras %}
 
 {% block content %}
 <div class="container mx-auto p-6">
   <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-    
+
     <!-- Фото товару -->
-    <div class="flex justify-center">
-      <img src="{{ product.get_image }}" alt="{{ product.name }}"
-        class="rounded-lg shadow-md max-h-[450px] object-contain">
+    <div x-data="{ activeImage: 0 }" class="relative">
+      <!-- Main Image -->
+      <div class="overflow-hidden rounded-lg shadow-md bg-white flex justify-center">
+        {% if product.images.all %}
+          {% for image in product.images.all %}
+            <img 
+              x-show="activeImage === {{ forloop.counter0 }}" 
+              src="{{ image.url }}" 
+              alt="{{ product.name }}" 
+              class="object-contain max-h-[500px] w-full transform transition duration-300 hover:scale-110 cursor-zoom-in"
+            >
+          {% endfor %}
+        {% else %}
+          <img src="{{ product.get_image }}" alt="{{ product.name }}" 
+            class="object-contain max-h-[500px] w-full">
+        {% endif %}
+      </div>
+
+      <!-- Thumbnails -->
+      {% if product.images.all %}
+      <div class="flex space-x-2 mt-3">
+        {% for image in product.images.all %}
+        <img 
+          src="{{ image.url }}" 
+          alt="thumb {{ forloop.counter }}" 
+          class="w-20 h-20 object-cover rounded-md border cursor-pointer hover:ring-2 hover:ring-green-500"
+          @click="activeImage = {{ forloop.counter0 }}"
+        >
+        {% endfor %}
+      </div>
+      {% endif %}
     </div>
 
     <!-- Інфоблок -->
-    <div class="flex flex-col justify-between">
-      <div>
-        <h1 class="text-3xl font-bold mb-3">{{ product.name }}</h1>
+    <div class="flex flex-col">
+      <!-- Назва -->
+      <h1 class="text-2xl font-bold mb-2">{{ product.name }}</h1>
 
-        <!-- Рейтинг -->
+      <!-- Рейтинг -->
+      <div class="flex items-center space-x-2 mb-3">
         {% if product.rating %}
-        <p class="text-yellow-500 mb-2">
-          ⭐ {{ product.rating }} 
-          <span class="text-gray-500 text-sm">({{ product.review_count }} відгуків)</span>
+        <p class="text-yellow-500">
+          ⭐ {{ product.rating }}
         </p>
+        <p class="text-gray-500 text-sm">({{ product.review_count }} відгуків)</p>
         {% endif %}
-
-        <!-- Ціна -->
-        <p class="text-3xl font-semibold text-green-600 mb-4">${{ product.price }}</p>
-
-        <!-- Категорія -->
-        <p class="text-sm text-gray-500 mb-4">Категорія: {{ product.category }}</p>
-
-        <!-- Селектори -->
-        <div class="space-y-4 mb-6">
-          {% if product.colors %}
-          <div>
-            <label class="block text-sm font-medium mb-1">Колір:</label>
-            <select class="border rounded-md px-3 py-2 w-full">
-              {% for color in product.colors %}
-              <option value="{{ color }}">{{ color }}</option>
-              {% endfor %}
-            </select>
-          </div>
-          {% endif %}
-
-          {% if product.sizes %}
-          <div>
-            <label class="block text-sm font-medium mb-1">Розмір:</label>
-            <select class="border rounded-md px-3 py-2 w-full">
-              {% for size in product.sizes %}
-              <option value="{{ size }}">{{ size }}</option>
-              {% endfor %}
-            </select>
-          </div>
-          {% endif %}
-
-          {% if product.memory_options %}
-          <div>
-            <label class="block text-sm font-medium mb-1">Пам’ять:</label>
-            <select class="border rounded-md px-3 py-2 w-full">
-              {% for memory in product.memory_options %}
-              <option value="{{ memory }}">{{ memory }}</option>
-              {% endfor %}
-            </select>
-          </div>
-          {% endif %}
-        </div>
-
-        <!-- Короткий опис -->
-        <p class="text-gray-700 mb-6 line-clamp-3">{{ product.short_description }}</p>
       </div>
 
-      <!-- Кнопка купівлі -->
-      <div>
+      <!-- Ціна -->
+      <div class="mb-4">
+        <p class="text-3xl font-bold text-green-600">${{ product.price }}</p>
+        {% if product.old_price %}
+        <p class="line-through text-gray-400">${{ product.old_price }}</p>
+        {% endif %}
+      </div>
+
+      <!-- Наявність -->
+      <p class="mb-4">
+        {% comment %} {% if product.in_stock %} {% endcomment %}
+          <span class="text-green-600 font-semibold">В наявності</span>
+        {% comment %} {% else %}
+          <span class="text-red-600 font-semibold">Немає в наявності</span>
+        {% endif %} {% endcomment %}
+      </p>
+
+      <!-- Селектори -->
+      <div class="space-y-4 mb-6">
+        {% if product.colors %}
+        <div>
+          <label class="block text-sm font-medium mb-1">Колір:</label>
+          <div class="flex space-x-2">
+            {% for color in product.colors %}
+            <button class="w-8 h-8 rounded-full border hover:ring-2 hover:ring-green-500" style="background: {{ color }};"></button>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        {% if product.sizes %}
+        <div>
+          <label class="block text-sm font-medium mb-1">Розмір:</label>
+          <select class="border rounded-md px-3 py-2 w-full">
+            {% for size in product.sizes %}
+            <option value="{{ size }}">{{ size }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Кнопки -->
+      <div class="flex space-x-3">
         {% if cart %}
         <a href="{% url 'payment_page' %}">
-          <button class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg w-full font-semibold">
+          <button class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold">
             Купити
           </button>
         </a>
         {% else %}
-        <button class="bg-gray-400 text-white px-6 py-3 rounded-lg w-full cursor-not-allowed" disabled>
+        <button class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold">
           Купити
         </button>
         {% endif %}
+        <button class="border px-6 py-3 rounded-lg hover:bg-gray-100">Додати в кошик</button>
       </div>
     </div>
   </div>
 
-  <!-- Вкладки -->
-  <div class="mt-10">
+  <!-- Tabs -->
+  <div x-data="{ tab: 'desc' }" class="mt-10">
     <div class="border-b flex space-x-6 text-lg">
-      <button class="py-2 border-b-2 border-green-600 font-semibold">Опис</button>
-      <button class="py-2 text-gray-500 hover:text-black">Відгуки</button>
+      <button @click="tab='desc'" 
+        :class="tab==='desc' ? 'border-b-2 border-green-600 font-semibold' : 'text-gray-500 hover:text-black'" 
+        class="py-2">Характеристики</button>
+
+      <button @click="tab='reviews'" 
+        :class="tab==='reviews' ? 'border-b-2 border-green-600 font-semibold' : 'text-gray-500 hover:text-black'" 
+        class="py-2">Відгуки</button>
     </div>
 
-    <!-- Опис -->
-    <div class="mt-6">
+    <!-- Характеристики -->
+    <div x-show="tab==='desc'" class="mt-6">
       <p class="text-gray-800 leading-relaxed">{{ product.description }}</p>
     </div>
+
+    <!-- Відгуки -->
+    <div x-show="tab==='reviews'" class="mt-6">
+      <h2 class="text-xl font-bold mb-4">Всі відгуки</h2>
+
+      <!-- Summary -->
+      {% if product.review_count %}
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div class="flex items-center space-x-2">
+          <span class="text-4xl font-bold text-yellow-500">{{ product.rating }}</span>
+          <div>
+            <p class="text-sm text-gray-500">з 5</p>
+            <p class="text-gray-600">{{ product.review_count }} відгуків</p>
+          </div>
+        </div>
+<div class="col-span-2">
+  {% for i in "54321" %}
+  <div class="flex items-center space-x-2 text-sm mb-1">
+    <span>{{ i }} ⭐</span>
+    <div class="bg-gray-200 rounded h-3 flex-1">
+      <div class="bg-yellow-400 h-3 rounded" style="width: {{ star_percentages|dict_get:i }}%"></div>
+    </div>
+    <span class="text-gray-500 text-xs">{{ star_counts|dict_get:i }}</span>
   </div>
+  {% endfor %}
+</div>
 
-  <!-- Відгуки -->
-  <div class="mt-10">
-    <h2 class="text-xl font-bold mb-4">Всі відгуки</h2>
+      </div>
+      {% endif %}
 
-    {% if user.is_authenticated and user_review_exists %}
-    <button class="bg-gray-400 text-white px-4 py-2 rounded-md cursor-not-allowed">
-      Ви вже залишили відгук
-    </button>
-    {% else %}
-    <a href="{% url 'add_review' product.id %}"
-      class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md">
-      Додати відгук
-    </a>
-    {% endif %}
+      <!-- Add Review -->
+      {% if user.is_authenticated and user_review_exists %}
+      <button class="bg-gray-400 text-white px-4 py-2 rounded-md cursor-not-allowed">
+        Ви вже залишили відгук
+      </button>
+      {% else %}
+      <a href="{% url 'add_review' product.id %}"
+        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md">
+        Додати відгук
+      </a>
+      {% endif %}
 
-    <div class="mt-6 space-y-4">
-      {% for review in reviews %}
-        {% include 'shop/_review.html' %}
-      {% empty %}
-        <p class="text-gray-500">Відгуків немає.</p>
-      {% endfor %}
+      <!-- Reviews -->
+      <div class="mt-6 space-y-4">
+        {% for review in reviews %}
+          {% include 'shop/_review.html' %}
+        {% empty %}
+          <p class="text-gray-500">Відгуків немає.</p>
+        {% endfor %}
+      </div>
     </div>
   </div>
 

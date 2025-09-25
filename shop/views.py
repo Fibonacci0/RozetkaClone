@@ -299,15 +299,18 @@ def product_list(request):
     })
 
 # --- Деталі продукту ---
-@login_required
+#@login_required
 def product_detail(request, product_id):
     categories = Category.objects.all()
     product = get_object_or_404(Product, id=product_id)
     reviews = product.reviews.select_related('user').order_by('-created_at') # type: ignore
 
     user_review_exists = False
-    is_favorited = False
-
+        
+    star_counts = {i: reviews.filter(rating=i).count() for i in range(1, 6)}
+    total = sum(star_counts.values()) or 1
+    star_percentages = {i: (count / total) * 100 for i, count in star_counts.items()}
+    
     if request.user.is_authenticated:
         # check if current user liked it
         is_favorited = Favorite.objects.filter(user=request.user, product=product).exists()
@@ -325,6 +328,8 @@ def product_detail(request, product_id):
         'user_review_exists': user_review_exists,
         'categories': categories,
         'is_favorited': is_favorited,
+        "star_counts": star_counts,
+        "star_percentages": star_percentages,
     })
 
 
