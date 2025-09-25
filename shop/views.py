@@ -214,6 +214,16 @@ def password_view(request):
 def other_view(request):
     return render(request, "shop/account/other.html")
 
+@login_required
+def update_avatar(request):
+    if request.method == "POST" and request.FILES.get("avatar"):
+        request.user.avatar = request.FILES["avatar"]
+        request.user.save()
+        messages.success(request, "Аватар оновлено")
+    else:
+        messages.error(request, "Необхідно вибрати файл")
+    return redirect("profile")
+
 # --- Пошук продуктів ---
 def search_products(request):
     categories = Category.objects.all()

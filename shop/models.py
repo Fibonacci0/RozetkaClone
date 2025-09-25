@@ -3,12 +3,14 @@ from django.utils import timezone
 from django.utils.text import slugify
 from django.contrib.auth.models import User, AbstractUser # type: ignore
 from django.conf import settings
+from .azure_storage import AvatarStorage, ProductStorage, PromoStorage
 
 class User(AbstractUser):
     email = models.EmailField(unique=True, null=True, blank=True)
     phone_number = models.CharField(max_length=15, unique=True, null=True, blank=True)
     first_name = models.CharField(max_length=15, blank=True, null=True)
     last_name = models.CharField(max_length=15, blank=True, null=True)
+    avatar = models.ImageField(storage=AvatarStorage, blank=True, null=True)
     #saved_cart = models.JSONField(default=list, blank=True)
 
 
@@ -60,7 +62,7 @@ class Product(models.Model):
     description = models.TextField(blank=True)
     id = models.AutoField(primary_key=True)
 
-    image = models.ImageField(upload_to='products/', blank=True, null=True)
+    image = models.ImageField(storage=ProductStorage, blank=True, null=True)
     image_url = models.URLField(
         max_length=500,
         blank=True,
@@ -116,7 +118,7 @@ class Promo(models.Model):
     description = models.TextField(blank=True)
 
     # загзука свого зображення
-    image = models.ImageField(upload_to='products/', blank=True, null=True)
+    image = models.ImageField(storage=PromoStorage, blank=True, null=True)
 
     # URL
     image_url = models.URLField(
