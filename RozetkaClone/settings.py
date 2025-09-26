@@ -103,8 +103,9 @@ WSGI_APPLICATION = 'RozetkaClone.wsgi.application'
 
 DATABASES = {
     'default': dj_database_url.config(
-        default=("postgresql://neondb_owner:npg_9DZGQYnKfSR1@ep-shy-boat-agwxkdgx-pooler.c-2.eu-central-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require") # "dev" - newest branch
-        #default=("postgresql://neondb_owner:npg_9DZGQYnKfSR1@ep-proud-mode-agwc0uy7-pooler.c-2.eu-central-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require") # "prod" - older branch, use as example 
+        #newest db, 26.09
+        default=("postgresql://neondb_owner:npg_9DZGQYnKfSR1@ep-patient-haze-agrrhovd-pooler.c-2.eu-central-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require")
+        #default=("postgresql://neondb_owner:npg_9DZGQYnKfSR1@ep-shy-boat-agwxkdgx-pooler.c-2.eu-central-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require") # "dev" - 
 
         
     )
