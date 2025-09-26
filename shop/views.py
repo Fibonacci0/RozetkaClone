@@ -28,6 +28,7 @@ from .forms import UserRegisterForm, ReviewForm, EmailRegisterForm, EmailLoginFo
 from django.urls import reverse
 
 from django.contrib.auth import update_session_auth_hash
+import random
 
 
 User = get_user_model()
@@ -321,6 +322,18 @@ def product_detail(request, product_id):
     total = sum(star_counts.values()) or 1
     star_percentages = {i: (count / total) * 100 for i, count in star_counts.items()}
     
+     # Get random products (excluding current product)
+    all_products = Product.objects.exclude(id=product.id)
+    # Get random products - limit to 4 for display
+    if all_products.exists():
+        # Convert to list and shuffle for random selection
+        products_list = list(all_products)
+        random.shuffle(products_list)
+        random_products = products_list[:4]  # Get first 4 after shuffle
+    else:
+        random_products = []
+        
+        
     if request.user.is_authenticated:
         # check if current user liked it
         is_favorited = Favorite.objects.filter(user=request.user, product=product).exists()
@@ -340,6 +353,7 @@ def product_detail(request, product_id):
         'is_favorited': is_favorited,
         "star_counts": star_counts,
         "star_percentages": star_percentages,
+        'random_products': random_products,
     })
 
 
