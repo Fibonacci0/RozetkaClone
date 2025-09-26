@@ -34,81 +34,306 @@
             </ul>
         {% else %}
             <!-- Фільтри для обраної категорії -->
-            <form method="get" class="filters-sidebar mt-4">
-                <h3 class="font-bold mb-2">Фільтри</h3>
+<div class="filters-sidebar mt-4 bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden" x-data="filterSidebar()">
+    <!-- Header -->
+    <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
+        <h3 class="font-bold text-lg text-gray-800">Фільтри</h3>
+    </div>
 
-                <!-- Бренд -->
-                <div class="mb-4">
-                    <h4 class="text-sm font-semibold">Бренд</h4>
-                    {% for brand in brands %}
-                        <label class="flex items-center text-sm">
-                            <input type="checkbox" name="brand" value="{{ brand }}"
-                                   {% if brand in selected_brands or brand in default_brands %}checked{% endif %}
-                                   class="mr-2">
-                            {{ brand }}
-                        </label>
-                    {% empty %}
-                        <p class="text-gray-400 text-sm">Брендів немає.</p>
-                    {% endfor %}
+    <form method="get" class="p-4">
+        <!-- Продавець -->
+        {% if sellers %}
+        <div class="mb-4">
+            <button type="button" 
+                    @click="toggleSection('seller')"
+                    class="flex items-center justify-between w-full text-left p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                <h4 class="text-sm font-semibold text-gray-800">Продавець</h4>
+                <div class="flex items-center">
+                    <span class="text-xs text-gray-500 mr-2">{{ sellers|length }}</span>
+                    <svg class="w-4 h-4 transform transition-transform duration-200 text-gray-600"
+                         :class="{ 'rotate-180': sections.seller }"
+                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </div>
+            </button>
+            
+            <div x-show="sections.seller" 
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 transform -translate-y-2"
+                 x-transition:enter-end="opacity-100 transform translate-y-0"
+                 x-transition:leave="transition ease-in duration-200"
+                 x-transition:leave-start="opacity-100 transform translate-y-0"
+                 x-transition:leave-end="opacity-0 transform -translate-y-2"
+                 class="mt-3 bg-white border border-gray-100 rounded-lg p-3 shadow-sm">
+                
+                <!-- Search input for sellers -->
+                <div class="relative mb-3">
+                    <input type="text" 
+                           x-model="searches.seller"
+                           placeholder="Пошук продавця..."
+                           class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-gray-50">
+                    <svg class="absolute right-3 top-2.5 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
                 </div>
 
-                <!-- Країна -->
-                <div class="mb-4">
-                    <h4 class="text-sm font-semibold">Країна</h4>
-                    {% for country in countries %}
-                        <label class="flex items-center text-sm">
-                            <input type="checkbox" name="country" value="{{ country }}"
-                                   {% if country in selected_countries or country in default_countries %}checked{% endif %}
-                                   class="mr-2">
-                            {{ country }}
-                        </label>
-                    {% empty %}
-                        <p class="text-gray-400 text-sm">Країн немає.</p>
-                    {% endfor %}
-                </div>
-
-                <!-- Продавець -->
-                <div class="mb-4">
-                    <h4 class="text-sm font-semibold">Продавець</h4>
+                <div class="space-y-2 max-h-48 overflow-y-auto">
                     {% for seller in sellers %}
-                        <label class="flex items-center text-sm">
-                            <input type="checkbox" name="seller" value="{{ seller }}"
-                                   {% if seller in selected_sellers or seller in default_sellers %}checked{% endif %}
-                                   class="mr-2">
-                            {{ seller }}
+                        <label class="flex items-center justify-between text-sm py-2 px-2 cursor-pointer hover:bg-orange-50 rounded-lg transition-colors group">
+                            <div class="flex items-center">
+                                <input type="checkbox" name="seller" value="{{ seller }}"
+                                       {% if seller in selected_sellers or seller in default_sellers %}checked{% endif %}
+                                       class="mr-3 w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500">
+                                <span class="text-gray-700 group-hover:text-orange-700">{{ seller }}</span>
+                            </div>
                         </label>
-                    {% empty %}
-                        <p class="text-gray-400 text-sm">Продавців немає.</p>
                     {% endfor %}
                 </div>
+            </div>
+        </div>
+        {% endif %}
 
-                <!-- Ціна -->
-                <div class="mb-4">
-                    <h4 class="text-sm font-semibold">Ціна</h4>
-                    
-                    <!-- Input для мінімальної і максимальної ціни -->
-                    <div class="flex space-x-2 mb-2">
+        <!-- Бренд -->
+        {% if brands %}
+        <div class="mb-4">
+            <button type="button" 
+                    @click="toggleSection('brand')"
+                    class="flex items-center justify-between w-full text-left p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                <h4 class="text-sm font-semibold text-gray-800">Бренд</h4>
+                <div class="flex items-center">
+                    <span class="text-xs text-gray-500 mr-2">{{ brands|length }}</span>
+                    <svg class="w-4 h-4 transform transition-transform duration-200 text-gray-600"
+                         :class="{ 'rotate-180': sections.brand }"
+                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </div>
+            </button>
+            
+            <div x-show="sections.brand" 
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 transform -translate-y-2"
+                 x-transition:enter-end="opacity-100 transform translate-y-0"
+                 x-transition:leave="transition ease-in duration-200"
+                 x-transition:leave-start="opacity-100 transform translate-y-0"
+                 x-transition:leave-end="opacity-0 transform -translate-y-2"
+                 class="mt-3 bg-white border border-gray-100 rounded-lg p-3 shadow-sm">
+                
+                <!-- Search input for brands -->
+                <div class="relative mb-3">
+                    <input type="text" 
+                           x-model="searches.brand"
+                           placeholder="Пошук бренду..."
+                           class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-gray-50">
+                    <svg class="absolute right-3 top-2.5 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                </div>
+
+                <div class="space-y-2 max-h-48 overflow-y-auto">
+                    {% for brand in brands %}
+                        <label class="flex items-center justify-between text-sm py-2 px-2 cursor-pointer hover:bg-orange-50 rounded-lg transition-colors group">
+                            <div class="flex items-center">
+                                {% if brand in selected_brands or brand in default_brands %}
+                                    <div class="mr-3 w-4 h-4 bg-green-500 rounded flex items-center justify-center">
+                                        <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                        </svg>
+                                    </div>
+                                {% else %}
+                                    <input type="checkbox" name="brand" value="{{ brand }}"
+                                           class="mr-3 w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500">
+                                {% endif %}
+                                <span class="text-gray-700 group-hover:text-orange-700">{{ brand }}</span>
+                            </div>
+                        </label>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Країна -->
+        {% if countries %}
+        <div class="mb-4">
+            <button type="button" 
+                    @click="toggleSection('country')"
+                    class="flex items-center justify-between w-full text-left p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                <h4 class="text-sm font-semibold text-gray-800">Країна</h4>
+                <div class="flex items-center">
+                    <span class="text-xs text-gray-500 mr-2">{{ countries|length }}</span>
+                    <svg class="w-4 h-4 transform transition-transform duration-200 text-gray-600"
+                         :class="{ 'rotate-180': sections.country }"
+                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </div>
+            </button>
+            
+            <div x-show="sections.country" 
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 transform -translate-y-2"
+                 x-transition:enter-end="opacity-100 transform translate-y-0"
+                 x-transition:leave="transition ease-in duration-200"
+                 x-transition:leave-start="opacity-100 transform translate-y-0"
+                 x-transition:leave-end="opacity-0 transform -translate-y-2"
+                 class="mt-3 bg-white border border-gray-100 rounded-lg p-3 shadow-sm">
+                
+                <div class="space-y-2 max-h-48 overflow-y-auto">
+                    {% for country in countries %}
+                        <label class="flex items-center justify-between text-sm py-2 px-2 cursor-pointer hover:bg-orange-50 rounded-lg transition-colors group">
+                            <div class="flex items-center">
+                                <input type="checkbox" name="country" value="{{ country }}"
+                                       {% if country in selected_countries or country in default_countries %}checked{% endif %}
+                                       class="mr-3 w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500">
+                                <span class="text-gray-700 group-hover:text-orange-700">{{ country }}</span>
+                            </div>
+                        </label>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Ціна -->
+        <div class="mb-6">
+            <button type="button" 
+                    @click="toggleSection('price')"
+                    class="flex items-center justify-between w-full text-left p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                <h4 class="text-sm font-semibold text-gray-800">Ціна</h4>
+                <svg class="w-4 h-4 transform transition-transform duration-200 text-gray-600"
+                     :class="{ 'rotate-180': sections.price }"
+                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+            </button>
+            
+            <div x-show="sections.price" 
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 transform -translate-y-2"
+                 x-transition:enter-end="opacity-100 transform translate-y-0"
+                 x-transition:leave="transition ease-in duration-200"
+                 x-transition:leave-start="opacity-100 transform translate-y-0"
+                 x-transition:leave-end="opacity-0 transform -translate-y-2"
+                 class="mt-3 bg-white border border-gray-100 rounded-lg p-4 shadow-sm">
+                
+                <!-- Input для мінімальної і максимальної ціни -->
+                <div class="flex space-x-3 mb-4">
+                    <div class="flex-1">
+                        <label class="block text-xs text-gray-500 mb-1">Від</label>
                         <input type="number" id="min_price_input" name="min_price" min="0" max="100000"
-                               value="{{ min_price_selected|default:0 }}" 
-                               class="w-1/2 px-2 py-1 border rounded text-sm">
-                        <input type="number" id="max_price_input" name="max_price" min="0" max="100000"
-                               value="{{ max_price_selected|default:100000 }}" 
-                               class="w-1/2 px-2 py-1 border rounded text-sm">
+                               value="{{ min_price_selected|default:'' }}" 
+                               placeholder="0"
+                               class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-gray-50">
                     </div>
+                    <div class="flex-1">
+                        <label class="block text-xs text-gray-500 mb-1">До</label>
+                        <input type="number" id="max_price_input" name="max_price" min="0" max="100000"
+                               value="{{ max_price_selected|default:'' }}" 
+                               placeholder="100000"
+                               class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-gray-50">
+                    </div>
+                </div>
 
-                    <!-- Повзунок для максимальної ціни -->
+                <!-- Повзунок для максимальної ціни -->
+                <div class="relative">
                     <input type="range"
                            id="price_slider"
                            min="0"
                            max="100000"
-                           step="100"
+                           step="500"
                            value="{{ max_price_selected|default:100000 }}"
-                           oninput="document.getElementById('max_price_input').value = this.value"
-                           class="w-full h-1.5 rounded-lg accent-orange-500">
+                           oninput="updatePriceFromSlider(this.value)"
+                           class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-thumb">
+                    <div class="flex justify-between text-xs text-gray-500 mt-1">
+                        <span>0₴</span>
+                        <span>100,000₴</span>
+                    </div>
                 </div>
+            </div>
+        </div>
 
-                <button type="submit" class="mt-2 px-4 py-1 bg-orange-500 text-white rounded hover:bg-orange-600">Застосувати</button>
-            </form>
+        <!-- Apply button -->
+        <div class="bg-white border-t border-gray-200 p-4 -m-4 mt-0">
+            <button type="submit" 
+                    class="w-full py-3 px-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-medium rounded-lg hover:from-orange-600 hover:to-orange-700 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 shadow-lg transform hover:scale-[1.02] active:scale-[0.98]">
+                <span class="flex items-center justify-center">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+                    </svg>
+                    Застосувати фільтри
+                </span>
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+function filterSidebar() {
+    return {
+        sections: {
+            seller: false,
+            brand: false, 
+            country: false,
+            price: true  // Price section open by default
+        },
+        searches: {
+            seller: '',
+            brand: '',
+            country: ''
+        },
+        
+        toggleSection(section) {
+            this.sections[section] = !this.sections[section];
+        }
+    }
+}
+
+// Price slider functionality
+function updatePriceFromSlider(value) {
+    document.getElementById('max_price_input').value = value;
+}
+
+// Update slider when max price input changes
+document.addEventListener('DOMContentLoaded', function() {
+    const maxPriceInput = document.getElementById('max_price_input');
+    const priceSlider = document.getElementById('price_slider');
+    
+    if (maxPriceInput && priceSlider) {
+        maxPriceInput.addEventListener('input', function() {
+            priceSlider.value = this.value;
+        });
+    }
+});
+</script>
+
+<style>
+.slider-thumb::-webkit-slider-thumb {
+    appearance: none;
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #f97316, #ea580c);
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(249, 115, 22, 0.3);
+    border: 2px solid white;
+}
+
+.slider-thumb::-moz-range-thumb {
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #f97316, #ea580c);
+    cursor: pointer;
+    border: 2px solid white;
+    box-shadow: 0 2px 8px rgba(249, 115, 22, 0.3);
+}
+
+.slider-thumb::-webkit-slider-track {
+    background: linear-gradient(to right, #f97316 0%, #f97316 var(--value, 50%), #e5e7eb var(--value, 50%), #e5e7eb 100%);
+}
+</style>
         {% endif %}
     </div>
 
