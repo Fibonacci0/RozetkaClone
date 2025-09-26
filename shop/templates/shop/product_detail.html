@@ -88,9 +88,9 @@
         <!-- Price -->
         <div class="mb-6">
           <div class="flex items-baseline space-x-3">
-            <span class="text-3xl font-bold text-green-600">${{ product.price }}</span>
+            <span class="text-3xl font-bold text-green-600">{{ product.price }} ₴</span>
             {% if product.old_price %}
-            <span class="text-lg text-gray-400 line-through">${{ product.old_price }}</span>
+            <span class="text-lg text-gray-400 line-through">{{ product.old_price }} ₴</span>
             {% endif %}
           </div>
         </div>
