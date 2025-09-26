@@ -160,12 +160,12 @@
               </svg>
               <span>Безкоштовна доставка від 1000 грн</span>
             </div>
-            <div class="flex items-center space-x-3">
+            {% comment %} <div class="flex items-center space-x-3">
               <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
               </svg>
               <span>Гарантія якості</span>
-            </div>
+            </div> {% endcomment %}
             <div class="flex items-center space-x-3">
               <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
@@ -331,9 +331,9 @@
               
               <!-- Price -->
               <div class="flex items-center space-x-2">
-                <span class="font-bold text-green-600">${{ related_product.price }}</span>
+                <span class="font-bold text-green-600">{{ related_product.price }}₴</span>
                 {% if related_product.old_price %}
-                <span class="text-sm text-gray-400 line-through">${{ related_product.old_price }}</span>
+                <span class="text-sm text-gray-400 line-through">{{ related_product.old_price }}₴</span>
                 {% endif %}
               </div>
             </div>
