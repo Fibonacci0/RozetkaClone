@@ -3,7 +3,7 @@ from django.utils.html import format_html
 from django.contrib.auth.admin import UserAdmin
 
 from .models import (
-    Product, Promo, Review, Category,
+    Order, OrderItem, Product, Promo, Review, Category,
     User, Favorite, PhoneOTP
 )
 
@@ -87,6 +87,76 @@ class CategoryAdmin(admin.ModelAdmin):
     prepopulated_fields = {"slug": ("name",)}
 
 
+@admin.register(Order)
+class OrderAdmin(admin.ModelAdmin):
+    list_display = (
+        "order_number",
+        "first_name",
+        "last_name",
+        "email",
+        "phone",
+        "total",
+        "status",
+        "is_paid",
+        "created_at",
+        "updated_at",
+    )
+    list_filter = ("status", "is_paid", "delivery_method", "payment_method", "created_at")
+    search_fields = ("order_number", "first_name", "last_name", "email", "phone")
+    readonly_fields = ("created_at", "updated_at", "paid_at")
+    ordering = ("-created_at",)
+
+    fieldsets = (
+        ("Order Info", {
+            "fields": (
+                "order_number",
+                "user",
+                "status",
+                "created_at",
+                "updated_at",
+            )
+        }),
+        ("Customer Details", {
+            "fields": (
+                "first_name",
+                "last_name",
+                "email",
+                "phone",
+                "address",
+            )
+        }),
+        ("Order Details", {
+            "fields": (
+                "delivery_method",
+                "payment_method",
+                "comments",
+            )
+        }),
+        ("Pricing", {
+            "fields": (
+                "subtotal",
+                "delivery_fee",
+                "discount_amount",
+                "total",
+            )
+        }),
+        ("Payment", {
+            "fields": (
+                "is_paid",
+                "paid_at",
+            )
+        }),
+    )
+
+@admin.register(OrderItem)
+class OrderItemAdmin(admin.ModelAdmin):
+    list_display = ['order', 'product', 'quantity', 'price', 'get_total_price']
+    list_filter = ['order__created_at']
+    search_fields = ['order__order_number', 'product__name']
+    
+    def get_total_price(self, obj):
+        return f"{obj.total_price} ₴"
+    get_total_price.short_description = 'Загальна сума'
 # @admin.register(Favorite)
 # class FavoriteAdmin(admin.ModelAdmin):
 #     list_display = ('user', 'product', 'created_at')
