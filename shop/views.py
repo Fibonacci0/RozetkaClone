@@ -14,7 +14,7 @@ from django.db.models import Q, Min, Max
 from django.http import HttpResponseRedirect, JsonResponse
 
 from django.utils import timezone
-from django.utils.http import urlsafe_base64_encode
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes
 
 from django.conf import settings
