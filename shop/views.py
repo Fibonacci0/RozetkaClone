@@ -344,6 +344,8 @@ def product_detail(request, product_id):
         if user_review:
             reviews = [user_review] + list(other_reviews)
             user_review_exists = True
+    else:
+        is_favorited = False
 
     return render(request, 'shop/product_detail.html', {
         'product': product,
