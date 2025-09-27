@@ -389,6 +389,7 @@ from django.shortcuts import render, redirect
 def payment_page(request):
     print("DEBUG SESSION CART:", request.session.get("cart"))
     items, total_price = get_cart_items(request)
+    print("!!!!!!!!!", items)
     if not items:
         messages.error(request, "Ваш кошик порожній")
         return redirect('home')
@@ -592,6 +593,7 @@ def add_to_cart(request, product_id):
 
     request.session['cart'] = cart
     request.session.modified = True
+    print("@@@@@@@@@", cart)
     return redirect('cart_page')
 
 def cart_page(request):
