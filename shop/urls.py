@@ -16,7 +16,6 @@ urlpatterns = [
     path('review/add/<int:product_id>/', views.review_form, name='add_review'),
     path('review/edit/<int:review_id>/', views.review_form, name='edit_review'),
     path('review/delete/<int:review_id>/', views.delete_review, name='delete_review'),
-    path('payment/', views.payment_page, name='payment_page'),
     path('register_email/', views.register_email, name='register_email'),
     path('register_phone_request/', views.register_phone_request, name='register_phone_request'),
     path('login_email/', views.login_email, name='login_email'),
@@ -28,9 +27,19 @@ urlpatterns = [
     path('favorite/<int:product_id>/', views.toggle_favorite, name='toggle_favorite'),
     # path('cart/add/<int:product_id>/', views.add_to_cart, name='add_to_cart'),
     path('add-to-cart/<int:product_id>/', views.add_to_cart, name='add_to_cart'),
-    path('cart/', views.cart_page, name='cart_page'),
-    path("cart/json/", views.cart_json, name="cart_json"),
-    path("cart/remove/<int:pk>/", views.cart_remove, name="cart_remove"),
+        # Cart AJAX endpoints
+    path('cart/add/', views.cart_add_ajax, name='cart_add_ajax'),
+    path('cart/remove/', views.cart_remove_ajax, name='cart_remove_ajax'),
+    path('cart/update/', views.cart_update_quantity_ajax, name='cart_update_quantity_ajax'),
+    path('cart/get/', views.cart_get_ajax, name='cart_get_ajax'),
+    path('cart/promo/', views.cart_apply_promo_ajax, name='cart_apply_promo_ajax'),
+    path('payment/', views.payment_page, name='payment_page'),
+        # Order processing
+    path('process-payment/', views.process_payment, name='process_payment'),
+    path('order-success/<str:order_number>/', views.order_success, name='order_success'),
+    path('order-history/', views.order_history, name='order_history'),
+    path('order/<str:order_number>/', views.order_detail, name='order_detail'),
+        # Favorites AJAX endpoint
     path('favorites/json/', views.favorites_list, name='favorites_list'),
 
 

@@ -1,35 +1,54 @@
-from django.shortcuts import render
-from urllib import request
-from django.contrib.auth.decorators import login_required
+
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import login, logout
+
 from django.contrib import messages
-from django.db.models import Q, Max  # <- додав сюди Max
-from django.db.models import Min, Max
-from .models import Category, Favorite, Product, Promo, Review
-from .forms import UserRegisterForm, ReviewForm, LoginForm
-from django.conf import settings
-from django.http import HttpResponseRedirect
-from .utils import generate_sms_code, verify_sms_code
-from django.utils import timezone
-from django.http import JsonResponse
-from django.conf import settings
+from django.contrib.auth import login, logout
+from django.contrib.auth import get_user_model
+from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.hashers import make_password
 from django.contrib.auth.tokens import default_token_generator
+
+from django.db.models import Q, Min, Max
+
+from django.http import HttpResponseRedirect, JsonResponse
+
+from django.utils import timezone
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
-from django.contrib.auth import get_user_model
+
+from django.conf import settings
+
 from django.core.mail import send_mail
-from django.utils.http import urlsafe_base64_decode
-from django.contrib.auth.hashers import make_password
+
 from django.template.loader import render_to_string
-from .models import Category, Product, Promo, Review, PhoneOTP
-from django.http import HttpResponseRedirect, JsonResponse
-from .forms import UserRegisterForm, ReviewForm, EmailRegisterForm, EmailLoginForm, PhoneLoginForm, PhoneRegisterForm, VerifySMSForm, PasswordResetRequestForm, PasswordResetConfirmForm, UserProfileForm, PasswordChangeForm
+
 from django.urls import reverse
 
-from django.contrib.auth import update_session_auth_hash
+from .models import Category, Favorite, Product, Promo, Review
+from .models import Category, Product, Promo, Review, PhoneOTP, Favorite, Order, OrderItem
+from .forms import UserRegisterForm, ReviewForm, LoginForm
+from .forms import (
+    UserRegisterForm,
+    ReviewForm,
+    EmailRegisterForm,
+    EmailLoginForm,
+    PhoneLoginForm,
+    PhoneRegisterForm,
+    VerifySMSForm,
+    PasswordResetRequestForm,
+    PasswordResetConfirmForm,
+    UserProfileForm,
+    PasswordChangeForm,
+)
+from .utils import generate_sms_code, verify_sms_code
+from urllib import request
 import random
-
+import json
+from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt
+from decimal import Decimal
+from django.db import transaction
 
 User = get_user_model()
 
@@ -40,7 +59,10 @@ def home(request):
     # promo
     promos = Promo.objects.filter(display=True).order_by('-created_at')
 
-
+    # Get cart count for display
+    cart = request.session.get('cart', {})
+    cart_count = sum(int(qty) for qty in cart.values()) if cart else 0
+    
     category_slug = request.GET.get('category')
     current_category = None
     if category_slug:
@@ -104,10 +126,317 @@ def home(request):
         'min_price': 0,
         'max_price': 100000,
         'favorited_ids': favorited_ids,
+        'cart_count': cart_count,  # Add cart count to context
+
     }
     return render(request, 'shop/home.html', context)
 
+def get_cart_items_with_session(request):
+    """Helper function to get cart items from session"""
+    cart = request.session.get('cart', {})
+    items = []
+    total_price = 0
+    
+    if cart:
+        product_ids = [int(pid) for pid in cart.keys()]
+        products = {p.id: p for p in Product.objects.filter(id__in=product_ids)}
+        
+        for product_id_str, quantity in cart.items():
+            product_id = int(product_id_str)
+            product = products.get(product_id)
+            if not product:
+                continue
+                
+            quantity = int(quantity)
+            price = product.price * quantity
+            total_price += price
+            
+            items.append({
+                "product": product,
+                "quantity": quantity,
+                "price": price,
+            })
+    
+    return items, total_price
+@transaction.atomic
+def process_payment(request):
+    """Process the payment and create order"""
+    if request.method != 'POST':
+        return redirect('payment_page')
+    
+    # Get cart items
+    items, subtotal = get_cart_items_with_session(request)
+    
+    if not items:
+        messages.error(request, "Ваш кошик порожній")
+        return redirect('home')
+    
+    try:
+        # Get form data
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        email = request.POST.get('email')
+        phone = request.POST.get('phone')
+        address = request.POST.get('address')
+        delivery_method = request.POST.get('delivery_method')
+        payment_method = request.POST.get('payment_method')
+        comments = request.POST.get('comments', '')
+        
+        # Calculate delivery fee
+        delivery_fees = {
+            'nova_poshta': Decimal('50.00'),
+            'ukr_poshta': Decimal('30.00'),
+            'courier': Decimal('100.00'),
+        }
+        delivery_fee = delivery_fees.get(delivery_method, Decimal('0.00'))
+        
+        # Apply discount if exists
+        discount = request.session.get('cart_discount', 0)
+        discount_amount = Decimal(str(subtotal)) * Decimal(str(discount)) / Decimal('100')
+        
+        # Calculate total
+        total = Decimal(str(subtotal)) - discount_amount + delivery_fee
+        
+        # Create order
+        order = Order.objects.create(
+            user=request.user if request.user.is_authenticated else None,
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            phone=phone,
+            address=address,
+            delivery_method=delivery_method,
+            payment_method=payment_method,
+            comments=comments,
+            subtotal=Decimal(str(subtotal)),
+            delivery_fee=delivery_fee,
+            discount_amount=discount_amount,
+            total=total,
+        )
+        
+        # Create order items
+        for item in items:
+            OrderItem.objects.create(
+                order=order,
+                product=item['product'],
+                quantity=item['quantity'],
+                price=item['product'].price
+            )
+        
+        # Clear cart and discount
+        request.session['cart'] = {}
+        request.session['cart_discount'] = 0
+        request.session.modified = True
+        
+        # розкоментувати для відправки email
+        #send_order_confirmation_email(order)
+        
+        messages.success(request, f"Замовлення #{order.order_number} успішно оформлено!")
+        return redirect('order_success', order_number=order.order_number)
+        
+    except Exception as e:
+        messages.error(request, f"Сталася помилка при оформленні замовлення: {str(e)}")
+        return redirect('payment_page')
 
+
+def order_success(request, order_number):
+    """Order success page"""
+    order = get_object_or_404(Order, order_number=order_number)
+    
+    # If user is authenticated, make sure they can only see their own orders
+    if request.user.is_authenticated and order.user and order.user != request.user:
+        messages.error(request, "Замовлення не знайдено")
+        return redirect('home')
+    
+    return render(request, 'shop/order_success.html', {
+        'order': order,
+        'categories': Category.objects.all()
+    })
+
+
+@login_required
+def order_history(request):
+    """User's order history"""
+    orders = Order.objects.filter(user=request.user).prefetch_related('items__product')
+    
+    return render(request, 'shop/order_history.html', {
+        'orders': orders,
+        'categories': Category.objects.all()
+    })
+
+
+@login_required
+def order_detail(request, order_number):
+    """Order detail page"""
+    order = get_object_or_404(Order, order_number=order_number, user=request.user)
+    
+    return render(request, 'shop/order_detail.html', {
+        'order': order,
+        'categories': Category.objects.all()
+    })
+
+
+@csrf_exempt
+@require_POST
+def cart_add_ajax(request):
+    """Add item to cart via AJAX"""
+    if not request.session.session_key:
+        request.session.create()
+    
+    try:
+        data = json.loads(request.body)
+        product_id = str(data.get('product_id'))
+        
+        # Get product to verify it exists
+        product = get_object_or_404(Product, id=product_id)
+        
+        cart = request.session.get('cart', {})
+        
+        if product_id in cart:
+            cart[product_id] = int(cart[product_id]) + 1
+        else:
+            cart[product_id] = 1
+        
+        request.session['cart'] = cart
+        request.session.modified = True
+        
+        return JsonResponse({
+            'success': True,
+            'cart_count': sum(cart.values()),
+            'message': f'{product.name} додано до кошика'
+        })
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@csrf_exempt
+@require_POST
+def cart_remove_ajax(request):
+    """Remove item from cart via AJAX"""
+    try:
+        data = json.loads(request.body)
+        product_id = str(data.get('product_id'))
+        
+        cart = request.session.get('cart', {})
+        
+        if product_id in cart:
+            del cart[product_id]
+            request.session['cart'] = cart
+            request.session.modified = True
+        
+        return JsonResponse({
+            'success': True,
+            'cart_count': sum(cart.values())
+        })
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@csrf_exempt
+@require_POST
+def cart_update_quantity_ajax(request):
+    """Update item quantity in cart via AJAX"""
+    try:
+        data = json.loads(request.body)
+        product_id = str(data.get('product_id'))
+        action = data.get('action')  # 'increase' or 'decrease'
+        
+        cart = request.session.get('cart', {})
+        
+        if product_id in cart:
+            current_quantity = int(cart[product_id])
+            
+            if action == 'increase':
+                cart[product_id] = current_quantity + 1
+            elif action == 'decrease' and current_quantity > 1:
+                cart[product_id] = current_quantity - 1
+            elif action == 'decrease' and current_quantity == 1:
+                del cart[product_id]
+        
+        request.session['cart'] = cart
+        request.session.modified = True
+        
+        return JsonResponse({
+            'success': True,
+            'cart_count': sum(cart.values())
+        })
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+def cart_get_ajax(request):
+    """Get current cart contents via AJAX"""
+    items, total_price = get_cart_items_with_session(request)
+    
+    cart_data = {
+        'items': [],
+        'total_price': total_price,
+        'cart_count': sum(item['quantity'] for item in items)
+    }
+    
+    for item in items:
+        product = item['product']
+        cart_data['items'].append({
+            'id': product.id,
+            'name': product.name,
+            'price': float(product.price),
+            'quantity': item['quantity'],
+            'total': float(item['price']),
+            'image': product.get_image() if hasattr(product, 'get_image') else (product.image.url if product.image else '/static/images/default.jpg')
+        })
+    
+    return JsonResponse(cart_data)
+
+@csrf_exempt
+@require_POST
+def cart_apply_promo_ajax(request):
+    """Apply promo code via AJAX"""
+    try:
+        data = json.loads(request.body)
+        promo_code = data.get('promo_code', '').strip().upper()
+        
+        discount = 0
+        message = ""
+        
+        if promo_code == "SALE10":
+            discount = 10
+            message = "✅ Промокод застосовано: -10%"
+        else:
+            message = "❌ Невірний промокод"
+        
+        # Store discount in session
+        request.session['cart_discount'] = discount
+        request.session.modified = True
+        
+        return JsonResponse({
+            'success': True,
+            'discount': discount,
+            'message': message
+        })
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+def payment_page(request):
+    """Updated payment page view"""
+    items, total_price = get_cart_items_with_session(request)
+    
+    if not items:
+        messages.error(request, "Ваш кошик порожній")
+        return redirect('home')
+    
+    # Apply discount if exists
+    discount = request.session.get('cart_discount', 0)
+    if discount > 0:
+        total_price = total_price - (total_price * discount / 100)
+    
+    return render(request, "shop/payment_page.html", {
+        "items": items,
+        "total_price": total_price,
+        "discount": discount,
+        "categories": Category.objects.all()
+    })
+    
 def category_detail(request, slug):
     categories = Category.objects.all()
     category = get_object_or_404(Category, slug=slug)
@@ -405,63 +734,6 @@ def delete_review(request, review_id):
     return redirect('product_detail', product_id=product_id)
 
 
-
-from django.shortcuts import render, redirect
-
-# def payment_page(request):
-#     # Отримуємо кошик для поточного користувача (за user або session)
-#     if request.user.is_authenticated:
-#         cart, created = Cart.objects.get_or_create(user=request.user)
-#     else:
-#         # Якщо неавторизований, тоді кошик через session_key
-#         session_key = request.session.session_key
-#         if not session_key:
-#             request.session.create()
-#         cart, created = Cart.objects.get_or_create(session_key=request.session.session_key)
-
-#     return render(request, "shop/payment_page.html", {
-#         "cart": cart,
-#         "user": request.user
-#     })
-
-# def payment_page(request):
-#     cart = request.session.get("cart", [])
-#     print("!!!!!!!!", cart)
-#     items = []
-#     total_price = 0
-
-#     # cart може бути або dict з id -> {...}, або просто список dict'ів
-#     if isinstance(cart, dict):  
-#         cart = [cart]  # перетворимо на список для зручності
-
-#     for item in cart:
-#         product_id = item.get("id")   # тут зчитуємо правильно
-#         quantity = item.get("quantity", 1)
-
-#         product = get_object_or_404(Product, id=product_id)
-#         price = product.price * quantity
-#         total_price += price
-
-#         items.append({
-#             "product": product,
-#             "quantity": quantity,
-#             "price": price,
-#         })
-
-#     return render(request, "shop/payment_page.html", {
-#         "items": items,
-#         "total_price": total_price,
-#     })
-
-def payment_page(request):
-    print("DEBUG SESSION CART:", request.session.get("cart"))
-    items, total_price = get_cart_items(request)
-    if not items:
-        messages.error(request, "Ваш кошик порожній")
-        return redirect('home')
-    return render(request, "shop/payment_page.html", {"items": items, "total_price": total_price})
-
-
 def register_email(request):
     if request.user.is_authenticated:
         return redirect('profile')
@@ -668,14 +940,6 @@ def add_to_cart(request, product_id):
     request.session.modified = True
     return redirect('cart_page')
 
-def cart_page(request):
-    print("DEBUG SESSION CART (cart_page):", request.session.get("cart"))
-    cart = request.session.get('cart', [])
-    products = Product.objects.filter(id__in=[item['id'] for item in cart])
-    return render(request, "shop/cart_page.html", {
-        "cart": cart,
-        "products": products,
-    })
 
 
 def get_cart_items(request):
@@ -702,7 +966,6 @@ def get_cart_items(request):
 
     return items, total_price
 
-from django.http import JsonResponse
 
 def cart_json(request):
     items, total_price = get_cart_items(request)
