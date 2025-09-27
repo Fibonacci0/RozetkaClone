@@ -751,7 +751,6 @@ def delete_review(request, review_id):
         review.delete()
     return redirect('product_detail', product_id=product_id)
 
-
 def register_email(request):
     if request.user.is_authenticated:
         return redirect('profile')
@@ -826,11 +825,9 @@ def register_phone_request(request):
             user.save(update_fields=['email'])
 
             generate_sms_code(user)
-
             request.session["phone_user_id"] = user.id
             request.session["phone_number"] = phone_clean
             request.session.modified = True
-
             return redirect("verify_phone_code")
     else:
         form = PhoneRegisterForm()
@@ -958,7 +955,59 @@ def add_to_cart(request, product_id):
     request.session.modified = True
     return redirect('cart_page')
 
+def cart_page(request):
+    print("DEBUG SESSION CART (cart_page):", request.session.get("cart"))
+    cart = request.session.get('cart', [])
+    products = Product.objects.filter(id__in=[item['id'] for item in cart])
+    return render(request, "shop/cart_page.html", {
+        "cart": cart,
+        "products": products,
+    })
 
+
+def get_cart_items(request):
+    cart = request.session.get('cart', [])
+    items = []
+    total_price = 0
+
+    product_ids = [int(item["id"]) for item in cart]
+    products = {p.id: p for p in Product.objects.filter(id__in=product_ids)} # type: ignore
+
+    for item in cart:
+        product_id = int(item["id"])
+        product = products.get(product_id)
+        if not product:
+            continue  # якщо товар видалено з БД
+        quantity = int(item.get("quantity", 1))
+        price = product.price * quantity
+        total_price += price
+        items.append({
+            "product": product,
+            "quantity": quantity,
+            "price": price,
+        })
+
+    return items, total_price
+
+from django.http import JsonResponse
+
+def cart_json(request):
+    items, total_price = get_cart_items(request)
+    data = {
+        "items": [
+            {
+                "id": item["product"].id,
+                "name": item["product"].name,
+                "price": item["product"].price,
+                "quantity": item["quantity"],
+                "total": item["price"],
+                "image": item["product"].get_image,
+            }
+            for item in items
+        ],
+        "total_price": total_price,
+    }
+    return JsonResponse(data)
 
 def get_cart_items(request):
     cart = request.session.get('cart', [])
@@ -1002,7 +1051,6 @@ def cart_json(request):
         "total_price": total_price,
     }
     return JsonResponse(data)
-
 def cart_remove(request, pk):
     cart = request.session.get('cart', [])
     pk = int(pk)

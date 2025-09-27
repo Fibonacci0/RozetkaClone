@@ -571,7 +571,6 @@ document.addEventListener('DOMContentLoaded', () => {
         cartModal.classList.remove('hidden');
     });
 
-    // ❌ Close cart modal
     closeCartModalBtn?.addEventListener('click', () => {
         cartModal.classList.add('hidden');
     });
@@ -769,7 +768,6 @@ document.addEventListener('DOMContentLoaded', () => {
         // Add event listeners for quantity buttons
         attachQuantityListeners();
     }
-
     // 🔘 Attach event listeners to quantity buttons
     function attachQuantityListeners() {
         // Remove item buttons

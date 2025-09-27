@@ -39,13 +39,17 @@ SECRET_KEY = 'django-insecure-#a0i&^#fi4vvosl-#iw9=6j&_3bl_o8+6v!uc0euo)z^92_*#j
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://rozetkaclone.onrender.com",
+]
 
 LOGIN_URL = "login_phone_request"
 LOGOUT_URL = "logout"
 LOGOUT_REDIRECT_URL = "."
 LOGIN_REDIRECT_URL = "profile"
+SESSION_ENGINE = "django.contrib.sessions.backends.db"
 
 
 
