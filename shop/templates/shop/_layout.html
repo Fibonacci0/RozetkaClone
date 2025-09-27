@@ -72,7 +72,7 @@
 </style>
 
 <body class="min-h-screen flex flex-col bg-gray-50">
-    <!-- Cart Modal -->
+<!-- Cart Modal -->
 <div id="cartModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
     <div class="bg-white w-full max-w-xl max-h-[80vh] p-6 rounded-xl relative shadow-2xl flex flex-col text-left overflow-hidden">
         <button id="closeCartModal"
@@ -89,7 +89,7 @@
             </div>
             
             <!-- Порожній кошик -->
-            <div id="emptyCartMessage" class="flex flex-col items-center justify-center text-gray-500">
+            <div id="emptyCartMessage" class="flex flex-col items-center justify-center text-gray-500 h-80">
                 <img src="{% static 'images/Frame 167.png' %}" alt="Cart Icon"
                     class="mx-auto mb-4 w-32 h-32 object-contain" />
                 <p class="text-lg">Ваш кошик порожній</p>
@@ -126,6 +126,62 @@
         </div>
     </div>
 </div>
+
+<!-- CSRF Token for AJAX requests -->
+<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+
+{% comment %} <!-- Cart count badge styles -->
+<style>
+.cart-badge {
+    position: relative;
+}
+
+.cart-badge #cart-count {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background-color: #ef4444;
+    color: white;
+    border-radius: 50%;
+    min-width: 20px;
+    height: 20px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    padding: 0 4px;
+}
+
+.cart-badge #cart-count.hidden {
+    display: none;
+}
+
+/* Ensure cart items have proper spacing */
+#cartItemsContainer > div {
+    margin-bottom: 12px;
+}
+
+#cartItemsContainer > div:last-child {
+    margin-bottom: 0;
+}
+</style>
+
+<!-- Initialize cart badge if it doesn't exist -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Add cart count badge to existing cart button if it doesn't have one
+    const cartButton = document.getElementById('open-cart-modal');
+    if (cartButton && !cartButton.querySelector('#cart-count')) {
+        cartButton.classList.add('cart-badge');
+        const badge = document.createElement('span');
+        badge.id = 'cart-count';
+        badge.className = 'hidden';
+        badge.textContent = '0';
+        cartButton.appendChild(badge);
+    }
+});
+</script> {% endcomment %}
 
 <!-- Favorites Modal -->
 <div id="favoritesModal" 
@@ -494,11 +550,23 @@
     // Get CSRF token
     function getCsrfToken() {
         const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
-        return csrfToken ? csrfToken.value : '';
+        if (csrfToken) return csrfToken.value;
+        
+        // Try to get from meta tag
+        const metaCsrf = document.querySelector('meta[name="csrf-token"]');
+        if (metaCsrf) return metaCsrf.getAttribute('content');
+        
+        // Try to get from cookie
+        const cookieValue = document.cookie
+            .split('; ')
+            .find(row => row.startsWith('csrftoken='))
+            ?.split('=')[1];
+        return cookieValue || '';
     }
 
     // 🔓 Open cart modal
-    openCartModalBtn?.addEventListener('click', () => {
+    openCartModalBtn?.addEventListener('click', (e) => {
+        e.preventDefault();
         loadCartData();
         cartModal.classList.remove('hidden');
     });
@@ -516,19 +584,18 @@
 
     // 🎯 Add/Remove product from cart
     document.querySelectorAll('[data-product-id]').forEach(btn => {
-        btn.addEventListener('click', async () => {
+        btn.addEventListener('click', async (e) => {
+            e.preventDefault();
             const productId = btn.dataset.productId;
             const isAdded = btn.dataset.added === 'true';
 
             try {
                 if (isAdded) {
-                    // Remove from cart
                     await removeFromCart(productId);
                     btn.dataset.added = 'false';
                     btn.classList.remove('text-green-600');
                     btn.classList.add('text-gray-700');
                 } else {
-                    // Add to cart
                     await addToCart(productId);
                     btn.dataset.added = 'true';
                     btn.classList.remove('text-gray-700');
@@ -557,6 +624,10 @@
             })
         });
 
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
         const data = await response.json();
         if (!data.success) {
             throw new Error(data.error || 'Failed to add to cart');
@@ -578,6 +649,10 @@
                 product_id: productId
             })
         });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
 
         const data = await response.json();
         if (!data.success) {
@@ -602,6 +677,10 @@
             })
         });
 
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
         const data = await response.json();
         if (!data.success) {
             throw new Error(data.error || 'Failed to update quantity');
@@ -615,7 +694,11 @@
     async function loadCartData() {
         try {
             const response = await fetch('/cart/get/');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
             const data = await response.json();
+            console.log('Cart data loaded:', data); // Debug log
             updateCartModal(data);
             updateCartCount(data.cart_count);
         } catch (error) {
@@ -625,9 +708,10 @@
 
     // 🔄 Update cart modal display
     function updateCartModal(cartData) {
+        console.log('Updating cart modal with data:', cartData); // Debug log
         cartItemsContainer.innerHTML = '';
 
-        if (cartData.items.length === 0) {
+        if (!cartData.items || cartData.items.length === 0) {
             cartItemsContainer.classList.add('hidden');
             emptyCartMessage.classList.remove('hidden');
             totalPriceElement.textContent = '0 ₴';
@@ -643,14 +727,20 @@
         checkoutLink.style.pointerEvents = 'auto';
         checkoutLink.style.opacity = '1';
 
+        // Calculate total price
+        let calculatedTotal = 0;
+        cartData.items.forEach(item => {
+            calculatedTotal += parseFloat(item.total) || 0;
+        });
+
         cartData.items.forEach(item => {
             const div = document.createElement('div');
-            div.className = 'flex items-center justify-between border-b pb-2';
+            div.className = 'flex items-center justify-between border-b pb-2 mb-2';
             div.dataset.productId = item.id;
 
             div.innerHTML = `
                 <div class="flex items-center space-x-4">
-                    <img src="${item.image}" alt="${item.name}" class="w-12 h-12 object-contain rounded">
+                    <img src="${item.image || '/static/images/default.jpg'}" alt="${item.name}" class="w-12 h-12 object-contain rounded">
                     <div>
                         <p class="text-sm font-semibold">${item.name}</p>
                         <p class="text-sm text-gray-500">${item.price} ₴ x ${item.quantity} = <b>${item.total.toFixed(2)} ₴</b></p>
@@ -667,21 +757,25 @@
             cartItemsContainer.appendChild(div);
         });
 
-        // Calculate total with discount
-        let total = cartData.total_price;
+        // Apply discount to total
+        let finalTotal = calculatedTotal;
         if (currentDiscount > 0) {
-            total = total - (total * currentDiscount / 100);
+            finalTotal = calculatedTotal - (calculatedTotal * currentDiscount / 100);
         }
 
-        totalPriceElement.textContent = `${total.toFixed(2)} ₴`;
+        console.log('Setting total price:', finalTotal); // Debug log
+        totalPriceElement.textContent = `${finalTotal.toFixed(2)} ₴`;
 
         // Add event listeners for quantity buttons
         attachQuantityListeners();
     }
 
+    // 🔘 Attach event listeners to quantity buttons
     function attachQuantityListeners() {
+        // Remove item buttons
         document.querySelectorAll('[data-remove-id]').forEach(btn => {
-            btn.addEventListener('click', async () => {
+            btn.addEventListener('click', async (e) => {
+                e.preventDefault();
                 const productId = btn.dataset.removeId;
                 try {
                     await removeFromCart(productId);
@@ -696,39 +790,64 @@
                     }
                 } catch (error) {
                     console.error('Error removing item:', error);
+                    alert('Помилка при видаленні товару');
                 }
             });
         });
 
+        // Decrease quantity buttons
         document.querySelectorAll('[data-decrease-id]').forEach(btn => {
-            btn.addEventListener('click', async () => {
+            btn.addEventListener('click', async (e) => {
+                e.preventDefault();
                 const productId = btn.dataset.decreaseId;
                 try {
                     await updateQuantity(productId, 'decrease');
                     loadCartData();
+                    
+                    // Check if item was removed completely
+                    setTimeout(() => {
+                        const cartItem = document.querySelector(`[data-product-id="${productId}"]`);
+                        if (!cartItemsContainer.querySelector(`[data-product-id="${productId}"]`)) {
+                            const productBtn = document.querySelector(`[data-product-id="${productId}"]`);
+                            if (productBtn) {
+                                productBtn.dataset.added = 'false';
+                                productBtn.classList.remove('text-green-600');
+                                productBtn.classList.add('text-gray-700');
+                            }
+                        }
+                    }, 100);
                 } catch (error) {
                     console.error('Error decreasing quantity:', error);
+                    alert('Помилка при зменшенні кількості');
                 }
             });
         });
 
         // Increase quantity buttons
         document.querySelectorAll('[data-increase-id]').forEach(btn => {
-            btn.addEventListener('click', async () => {
+            btn.addEventListener('click', async (e) => {
+                e.preventDefault();
                 const productId = btn.dataset.increaseId;
                 try {
                     await updateQuantity(productId, 'increase');
                     loadCartData();
                 } catch (error) {
                     console.error('Error increasing quantity:', error);
+                    alert('Помилка при збільшенні кількості');
                 }
             });
         });
     }
 
     // 🎫 Apply promo code
-    applyPromoBtn?.addEventListener('click', async () => {
+    applyPromoBtn?.addEventListener('click', async (e) => {
+        e.preventDefault();
         const promoCode = promoInput.value.trim();
+        
+        if (!promoCode) {
+            alert('Введіть промокод');
+            return;
+        }
         
         try {
             const response = await fetch('/cart/promo/', {
@@ -742,13 +861,18 @@
                 })
             });
 
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
             const data = await response.json();
             if (data.success) {
                 currentDiscount = data.discount;
                 alert(data.message);
                 loadCartData(); // Refresh cart with new discount
+                promoInput.value = ''; // Clear input
             } else {
-                alert(data.error || 'Failed to apply promo code');
+                alert(data.message || 'Невірний промокод');
             }
         } catch (error) {
             console.error('Error applying promo:', error);
@@ -756,32 +880,43 @@
         }
     });
 
+    // 📈 Update cart count in header
     function updateCartCount(count) {
         const cartCountElement = document.getElementById('cart-count');
         if (cartCountElement) {
-            cartCountElement.textContent = count;
-            cartCountElement.classList.toggle('hidden', count === 0);
+            cartCountElement.textContent = count || 0;
+            cartCountElement.classList.toggle('hidden', !count || count === 0);
         }
     }
 
+    // 🛒 Checkout button
     checkoutBtn?.addEventListener('click', (e) => {
+        // Let the link handle navigation, but you can add validation here
+        console.log('Checkout clicked');
     });
 
+    // 🚀 Initialize cart state on page load
     loadCartData();
 
+    // 🔄 Initialize product button states based on cart
     async function initializeProductButtons() {
         try {
             const response = await fetch('/cart/get/');
+            if (!response.ok) return;
+            
             const data = await response.json();
             
-            data.items.forEach(item => {
-                const productBtn = document.querySelector(`[data-product-id="${item.id}"]`);
-                if (productBtn) {
-                    productBtn.dataset.added = 'true';
-                    productBtn.classList.remove('text-gray-700');
-                    productBtn.classList.add('text-green-600');
-                }
-            });
+            // Update all product buttons based on cart contents
+            if (data.items && data.items.length > 0) {
+                data.items.forEach(item => {
+                    const productBtn = document.querySelector(`[data-product-id="${item.id}"]`);
+                    if (productBtn) {
+                        productBtn.dataset.added = 'true';
+                        productBtn.classList.remove('text-gray-700');
+                        productBtn.classList.add('text-green-600');
+                    }
+                });
+            }
         } catch (error) {
             console.error('Error initializing product buttons:', error);
         }

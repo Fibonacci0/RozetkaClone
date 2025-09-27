@@ -45,7 +45,7 @@ from .utils import generate_sms_code, verify_sms_code
 from urllib import request
 import random
 import json
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from decimal import Decimal
 from django.db import transaction
@@ -158,6 +158,7 @@ def get_cart_items_with_session(request):
             })
     
     return items, total_price
+
 @transaction.atomic
 def process_payment(request):
     """Process the payment and create order"""
@@ -364,28 +365,40 @@ def cart_update_quantity_ajax(request):
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})
 
+@require_http_methods(["GET"])
 def cart_get_ajax(request):
     """Get current cart contents via AJAX"""
-    items, total_price = get_cart_items_with_session(request)
-    
-    cart_data = {
-        'items': [],
-        'total_price': total_price,
-        'cart_count': sum(item['quantity'] for item in items)
-    }
-    
-    for item in items:
-        product = item['product']
-        cart_data['items'].append({
-            'id': product.id,
-            'name': product.name,
-            'price': float(product.price),
-            'quantity': item['quantity'],
-            'total': float(item['price']),
-            'image': product.get_image() if hasattr(product, 'get_image') else (product.image.url if product.image else '/static/images/default.jpg')
-        })
-    
-    return JsonResponse(cart_data)
+    try:
+        items, total_price = get_cart_items_with_session(request)
+        
+        cart_data = {
+            'items': [],
+            'total_price': float(total_price),
+            'cart_count': sum(item['quantity'] for item in items)
+        }
+        
+        for item in items:
+            product = item['product']
+            # Get image URL safely
+            image_url = '/static/images/default.jpg'
+            if hasattr(product, 'image') and product.image:
+                image_url = product.image.url
+            elif hasattr(product, 'get_image'):
+                image_url = product.get_image()
+                
+            cart_data['items'].append({
+                'id': product.id,
+                'name': product.name,
+                'price': float(product.price),
+                'quantity': item['quantity'],
+                'total': float(item['price']),
+                'image': image_url
+            })
+        
+        return JsonResponse(cart_data)
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=400)
 
 @csrf_exempt
 @require_POST
@@ -427,16 +440,19 @@ def payment_page(request):
     
     # Apply discount if exists
     discount = request.session.get('cart_discount', 0)
+    discount_amount = 0
     if discount > 0:
-        total_price = total_price - (total_price * discount / 100)
+        discount_amount = total_price * discount / 100
+        total_price = total_price - discount_amount
     
     return render(request, "shop/payment_page.html", {
         "items": items,
         "total_price": total_price,
         "discount": discount,
+        "discount_amount": discount_amount,
         "categories": Category.objects.all()
     })
-    
+
 def category_detail(request, slug):
     categories = Category.objects.all()
     category = get_object_or_404(Category, slug=slug)

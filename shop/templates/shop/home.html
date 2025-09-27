@@ -504,7 +504,7 @@ function getCookie(name) {
 }
 </script>
 <!-- Smartsupp Live Chat script -->
-<script type="text/javascript">
+{% comment %} <script type="text/javascript">
     var _smartsupp = _smartsupp || {};
     _smartsupp.key = '7ce9c2b5f2c9c9c01a16300e69af6d6e6c7d2542';
     window.smartsupp||(function(d) {
@@ -515,6 +515,6 @@ function getCookie(name) {
     })(document);
     </script>
     <noscript> Powered by <a href=“https://www.smartsupp.com” target=“_blank”>Smartsupp</a></noscript>
-    
+     {% endcomment %}
 
 {% endblock %}
