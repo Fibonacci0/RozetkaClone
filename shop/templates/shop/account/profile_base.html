@@ -1,0 +1,101 @@
+{% extends "shop/_layout.html" %}
+{% load static %}
+
+{% block content %}
+<div class="flex justify-center items-start p-6">
+  <div class="w-full max-w-5xl bg-white shadow-lg rounded-2xl overflow-hidden flex flex-col md:flex-row">
+
+    <div class="w-full md:w-1/3 border-r border-gray-200 p-6 bg-gray-50">
+      <form method="post" enctype="multipart/form-data" id="avatar-form" action="{% url 'profile_update_avatar' %}"
+        class="flex flex-col items-center">
+        {% csrf_token %}
+        <div class="relative w-32 h-32 rounded-full overflow-hidden border-4 border-gray-300 cursor-pointer"
+          id="avatar-container">
+          {% if request.user.avatar %}
+          <img src="{{ request.user.avatar.url }}" alt="Avatar" id="avatar-img" class="w-full h-full object-cover">
+          {% else %}
+          <img src="{% static 'images/icons/def_user.svg' %}" alt="Avatar" id="avatar-img"
+            class="w-full h-full object-cover">
+          {% endif %}
+          <input type="file" id="avatar-input" name="avatar" class="hidden" accept="image/*">
+        </div>
+
+        <div id="avatar-buttons" class="mt-2 hidden space-x-2">
+          <button type="submit"
+            class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">Зберегти</button>
+          <button type="button" id="cancel-avatar"
+            class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">Скасувати</button>
+        </div>
+
+        <h2 class="mt-4 font-semibold text-lg text-gray-800">{{ request.user.username }}</h2>
+      </form>
+
+
+      <div class="border-t border-gray-300 my-6"></div>
+
+      <nav class="mt-8 space-y-2">
+        <a href="{% url 'profile' %}"
+          class="block px-4 py-2 rounded-lg font-medium {% if request.resolver_match.url_name == 'profile' %}bg-orange-100 text-orange-600{% else %}hover:bg-gray-100{% endif %}">
+          Профіль
+        </a>
+        <a href="{% url 'profile_password' %}"
+          class="block px-4 py-2 rounded-lg font-medium {% if request.resolver_match.url_name == 'profile_password' %}bg-orange-100 text-orange-600{% else %}hover:bg-gray-100{% endif %}">
+          Пароль
+        </a>
+        <a href="{% url 'profile_other' %}"
+          class="block px-4 py-2 rounded-lg font-medium {% if request.resolver_match.url_name == 'profile_other' %}bg-orange-100 text-orange-600{% else %}hover:bg-gray-100{% endif %}">
+          Інше
+        </a>
+
+        <form method="post" action="{% url 'logout' %}" class="mt-6">
+          {% csrf_token %}
+          <button type="submit"
+            class="w-full px-4 py-2 bg-red-500 text-white font-medium rounded-lg hover:bg-red-700 transition-colors">
+            Вийти
+          </button>
+        </form>
+
+      </nav>
+    </div>
+
+
+    <div class="w-full md:w-2/3 p-8">
+      {% block profile_content %}{% endblock %}
+    </div>
+
+  </div>
+</div>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const avatarContainer = document.getElementById('avatar-container');
+    const avatarInput = document.getElementById('avatar-input');
+    const avatarImg = document.getElementById('avatar-img');
+    const avatarButtons = document.getElementById('avatar-buttons');
+    const cancelBtn = document.getElementById('cancel-avatar');
+
+    let originalSrc = avatarImg.src;
+
+    avatarContainer.addEventListener('click', () => {
+      avatarInput.click();
+    });
+
+    avatarInput.addEventListener('change', () => {
+      if (avatarInput.files && avatarInput.files[0]) {
+        const reader = new FileReader();
+        reader.onload = e => {
+          avatarImg.src = e.target.result;
+          avatarButtons.classList.remove('hidden');
+        };
+        reader.readAsDataURL(avatarInput.files[0]);
+      }
+    });
+
+    cancelBtn.addEventListener('click', () => {
+      avatarImg.src = originalSrc;
+      avatarInput.value = '';
+      avatarButtons.classList.add('hidden');
+    });
+  });
+</script>
+
+{% endblock %}

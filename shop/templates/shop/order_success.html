@@ -1,0 +1,151 @@
+{% extends 'shop/_layout.html' %}
+{% load static %}
+
+{% block title %}Замовлення оформлено - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-2xl mx-auto text-center">
+        <!-- Success Icon -->
+        <div class="mb-6">
+            <div class="w-24 h-24 mx-auto bg-green-100 rounded-full flex items-center justify-center">
+                <svg class="w-12 h-12 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+            </div>
+        </div>
+
+        <!-- Success Message -->
+        <h1 class="text-3xl font-bold text-gray-900 mb-4">Дякуємо за замовлення!</h1>
+        <p class="text-lg text-gray-600 mb-8">Ваше замовлення успішно прийнято в обробку</p>
+
+        <!-- Order Details Card -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8 text-left">
+            <h2 class="text-xl font-semibold mb-4 text-center">Деталі замовлення</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div>
+                    <p class="text-sm text-gray-600">Номер замовлення</p>
+                    <p class="font-semibold text-lg">#{{ order.order_number }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-600">Дата замовлення</p>
+                    <p class="font-semibold">{{ order.created_at|date:"d.m.Y H:i" }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-600">Спосіб доставки</p>
+                    <p class="font-semibold">{{ order.get_delivery_method_display }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-600">Спосіб оплати</p>
+                    <p class="font-semibold">{{ order.get_payment_method_display }}</p>
+                </div>
+            </div>
+
+            <div class="border-t pt-4 mb-4">
+                <p class="text-sm text-gray-600 mb-2">Адреса доставки</p>
+                <p class="font-medium">{{ order.address }}</p>
+            </div>
+
+            <!-- Order Items -->
+            <div class="border-t pt-4 mb-4">
+                <p class="text-sm text-gray-600 mb-3">Товари в замовленні</p>
+                <div class="space-y-3">
+                    {% for item in order.items.all %}
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center space-x-3">
+                            <img src="{{ item.product.get_image }}" 
+                                 alt="{{ item.product.name }}" 
+                                 class="w-12 h-12 object-cover rounded">
+                            <div>
+                                <p class="font-medium">{{ item.product.name }}</p>
+                                <p class="text-sm text-gray-600">{{ item.price }} ₴ x {{ item.quantity }}</p>
+                            </div>
+                        </div>
+                        <p class="font-semibold">{{ item.total_price }} ₴</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Order Total -->
+            <div class="border-t pt-4">
+                <div class="space-y-2">
+                    <div class="flex justify-between">
+                        <span>Підсумок:</span>
+                        <span>{{ order.subtotal }} ₴</span>
+                    </div>
+                    {% if order.discount_amount > 0 %}
+                    <div class="flex justify-between text-green-600">
+                        <span>Знижка:</span>
+                        <span>-{{ order.discount_amount }} ₴</span>
+                    </div>
+                    {% endif %}
+                    <div class="flex justify-between">
+                        <span>Доставка:</span>
+                        <span>{{ order.delivery_fee }} ₴</span>
+                    </div>
+                    <div class="flex justify-between text-xl font-bold border-t pt-2">
+                        <span>Загальна сума:</span>
+                        <span class="text-green-600">{{ order.total }} ₴</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Next Steps -->
+        <div class="bg-blue-50 rounded-lg p-6 mb-8 text-left">
+            <h3 class="font-semibold text-blue-900 mb-3">Що далі?</h3>
+            <ul class="space-y-2 text-blue-800">
+                <li class="flex items-start">
+                    <svg class="w-5 h-5 text-blue-600 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                    </svg>
+                    Ми зв'яжемося з вами найближчим часом для підтвердження замовлення
+                </li>
+                <li class="flex items-start">
+                    <svg class="w-5 h-5 text-blue-600 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                    </svg>
+                    Інформацію про статус замовлення надішлемо на email: {{ order.email }}
+                </li>
+                <li class="flex items-start">
+                    <svg class="w-5 h-5 text-blue-600 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                    </svg>
+                    Орієнтовний час доставки: 1-3 робочих дні
+                </li>
+            </ul>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="space-y-4">
+            {% if user.is_authenticated %}
+            <a href="{% url 'order_history' %}" 
+               class="inline-block bg-green-600 text-white px-8 py-3 rounded-xl font-semibold hover:bg-green-700 transition duration-300">
+                Переглянути мої замовлення
+            </a>
+            {% endif %}
+            
+            <div>
+                <a href="{% url 'home' %}" 
+                   class="inline-block bg-gray-600 text-white px-8 py-3 rounded-xl font-semibold hover:bg-gray-700 transition duration-300 mr-4">
+                    Повернутися до покупок
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Clear any remaining cart data from localStorage if it exists
+document.addEventListener('DOMContentLoaded', () => {
+    // Clear cart count display
+    const cartCount = document.getElementById('cart-count');
+    if (cartCount) {
+        cartCount.textContent = '0';
+        cartCount.classList.add('hidden');
+    }
+});
+</script>
+{% endblock %}

@@ -25,7 +25,13 @@
             },
         }
     </script>
+    <!-- for animations-->
     <script src="https://cdn.jsdelivr.net/npm/animejs@4.1.2/lib/anime.iife.min.js"></script>
+    <!-- for templates and repetative elements(react like components)-->
+    <script
+      src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.3.5/dist/alpine.min.js"
+      defer
+    ></script>
 
     <!-- icons-->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
@@ -66,74 +72,190 @@
 </style>
 
 <body class="min-h-screen flex flex-col bg-gray-50">
-    <!-- Cart Modal -->
-    <div id="cartModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
-        <div
-            class="bg-white w-full max-w-xl max-h-[80vh] p-6 rounded-xl relative shadow-2xl flex flex-col text-left overflow-y-auto">
-            <button id="closeCartModal"
-                class="absolute top-4 right-4 text-gray-400 hover:text-black text-2xl leading-none">&times;</button>
-
-            <!-- Заголовок -->
-            <h2 class="text-2xl font-bold mb-4 text-center">Корзина</h2>
-
-            <div id="cartContent" class="relative h-80">
-
-                <!-- Список товарів -->
-                <div id="cartItemsContainer" class="hidden h-full overflow-y-auto space-y-4 pr-2"></div>
-
-                <!-- Порожній кошик -->
-                <div id="emptyCartMessage"
-                    class="absolute inset-0 flex flex-col items-center justify-center text-gray-500">
-                    <img src="{% static 'images/Frame 167.png' %}" alt="Cart Icon"
-                        class="mx-auto mb-4 w-65 h-65 object-contain" />
-                </div>
+<!-- Cart Modal -->
+<div id="cartModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
+    <div class="bg-white w-full max-w-xl max-h-[80vh] p-6 rounded-xl relative shadow-2xl flex flex-col text-left overflow-hidden">
+        <button id="closeCartModal"
+            class="absolute top-4 right-4 text-gray-400 hover:text-black text-2xl leading-none z-10">&times;</button>
+        
+        <!-- Заголовок -->
+        <h2 class="text-2xl font-bold mb-4 text-center pr-8">Кошик</h2>
+        
+        <!-- Контент кошика -->
+        <div id="cartContent" class="flex-1 overflow-hidden">
+            <!-- Список товарів -->
+            <div id="cartItemsContainer" class="hidden h-80 overflow-y-auto space-y-4 pr-2 mb-4">
+                <!-- Items will be populated by JavaScript -->
             </div>
-
-            <!-- Підсумок -->
-            <div class="mt-4 flex justify-between">
-                <span>Разом:</span>
-                <span id="totalPrice">0 ₴</span>
+            
+            <!-- Порожній кошик -->
+            <div id="emptyCartMessage" class="flex flex-col items-center justify-center text-gray-500 h-80">
+                <img src="{% static 'images/Frame 167.png' %}" alt="Cart Icon"
+                    class="mx-auto mb-4 w-32 h-32 object-contain" />
+                <p class="text-lg">Ваш кошик порожній</p>
+                <p class="text-sm">Додайте товари для покупки</p>
             </div>
-
+        </div>
+        
+        <!-- Підсумок -->
+        <div class="border-t pt-4 mt-4">
+            <div class="flex justify-between text-lg font-semibold mb-4">
+                <span>Загальна сума:</span>
+                <span id="totalPrice" class="text-green-600">0 ₴</span>
+            </div>
+            
             <!-- Промокод -->
-            <div class="mt-2 flex space-x-2">
-                <input id="promoInput" type="text" placeholder="Промокод" class="border rounded px-2 py-1 flex-1">
-                <button id="applyPromoBtn" class="bg-gray-200 px-3 py-1 rounded">OK</button>
+            <div class="flex space-x-2 mb-4">
+                <input id="promoInput" 
+                       type="text" 
+                       placeholder="Введіть промокод" 
+                       class="border border-gray-300 rounded-lg px-3 py-2 flex-1 focus:outline-none focus:border-green-500">
+                <button id="applyPromoBtn" 
+                        class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition duration-300">
+                    Застосувати
+                </button>
             </div>
-
-            <a id="checkoutLink" href="{% url 'payment_page' %}">
+            
+            <!-- Кнопка оформлення -->
+            <a id="checkoutLink" href="{% url 'payment_page' %}" class="block">
                 <button id="checkoutBtn"
-                    class="bg-green-600 text-white text-lg font-semibold px-6 py-3 rounded-xl shadow hover:bg-green-700 transition">
-                    Придбати
+                        class="w-full bg-green-600 text-white text-lg font-semibold px-6 py-3 rounded-xl shadow hover:bg-green-700 transition duration-300 disabled:bg-gray-400 disabled:cursor-not-allowed">
+                    Перейти до оплати
                 </button>
             </a>
-
         </div>
     </div>
+</div>
+
+<!-- CSRF Token for AJAX requests -->
+<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+
+{% comment %} <!-- Cart count badge styles -->
+<style>
+.cart-badge {
+    position: relative;
+}
+
+.cart-badge #cart-count {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background-color: #ef4444;
+    color: white;
+    border-radius: 50%;
+    min-width: 20px;
+    height: 20px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    padding: 0 4px;
+}
+
+.cart-badge #cart-count.hidden {
+    display: none;
+}
+
+/* Ensure cart items have proper spacing */
+#cartItemsContainer > div {
+    margin-bottom: 12px;
+}
+
+#cartItemsContainer > div:last-child {
+    margin-bottom: 0;
+}
+</style>
+
+<!-- Initialize cart badge if it doesn't exist -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Add cart count badge to existing cart button if it doesn't have one
+    const cartButton = document.getElementById('open-cart-modal');
+    if (cartButton && !cartButton.querySelector('#cart-count')) {
+        cartButton.classList.add('cart-badge');
+        const badge = document.createElement('span');
+        badge.id = 'cart-count';
+        badge.className = 'hidden';
+        badge.textContent = '0';
+        cartButton.appendChild(badge);
+    }
+});
+</script> {% endcomment %}
+
 <!-- Favorites Modal -->
 <div id="favoritesModal" 
-     class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
-  <div class="bg-white w-full max-w-xl max-h-[80vh] p-6 rounded-xl relative shadow-2xl flex flex-col text-left overflow-y-auto">
+     class="fixed inset-0 bg-black bg-opacity-60 z-50 hidden items-center justify-center p-4">
+  <div class="bg-white w-full max-w-4xl max-h-[85vh] rounded-2xl relative shadow-2xl flex flex-col overflow-hidden transform transition-all duration-300 scale-95 opacity-0" 
+       id="favoritesModalContent">
     
-    <button id="closeFavoritesModal"
-            class="absolute top-4 right-4 text-gray-400 hover:text-black text-2xl leading-none">&times;</button>
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-green-50 to-emerald-50 px-6 py-4 border-b border-gray-200">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center shadow-md">
+            <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"/>
+            </svg>
+          </div>
+          <div>
+            <h2 class="text-2xl font-bold text-gray-800">Ваші обрані товари</h2>
+            <p class="text-gray-600 text-sm">Збережені для майбутніх покупок</p>
+          </div>
+        </div>
+        
+        <div class="flex items-center space-x-3">
+          <span id="favoritesCount" class="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold">0</span>
+          <button id="clearAllBtn" 
+                  class="text-gray-500 hover:text-red-500 transition-colors duration-200 p-2 rounded-lg hover:bg-red-50"
+                  title="Очистити всі">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+            </svg>
+          </button>
+          <button id="closeFavoritesModal"
+                  class="text-gray-500 hover:text-gray-800 transition-colors duration-200 p-2 rounded-lg hover:bg-gray-100">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
 
-    <h2 class="text-2xl font-bold mb-4 text-center">Обрані товари</h2>
+    <!-- Content Area -->
+    <div class="flex-1 overflow-y-auto p-6">
+      <!-- Loading State -->
+      <div id="loadingState" class="hidden text-center py-16">
+        <div class="inline-block w-12 h-12 border-4 border-green-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p class="text-gray-600">Завантаження обраних товарів...</p>
+      </div>
 
-    <div id="favoritesContent" class="relative h-80">
-      <!-- Items -->
+      <!-- Items Grid -->
       <div id="favoritesItemsContainer" 
-           class="hidden grid grid-cols-2 gap-4 overflow-y-auto pr-2"></div>
+           class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
 
       <!-- Empty State -->
       <div id="emptyFavoritesMessage" 
-           class="absolute inset-0 flex flex-col items-center justify-center text-gray-500">
-        <i class="fa-regular fa-heart text-6xl mb-4"></i>
-        <p>У вас поки немає обраних товарів</p>
+           class="hidden text-center py-12">
+        <div class="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center shadow-lg transform hover:scale-105 transition-transform duration-300">
+          <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+          </svg>
+        </div>
+        <h3 class="text-xl font-bold text-gray-800 mb-3">Тут порожньо !</h3>
+        <p class="text-gray-600 mb-6 max-w-sm mx-auto">У вас ще немає обраних товарів. Додайте товари до улюблених, щоб швидко знаходити їх пізніше.</p>
+        <button class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors duration-200 font-semibold shadow-md hover:shadow-lg transform hover:scale-105">
+          <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+          </svg>
+          Почати покупки
+        </button>
       </div>
     </div>
   </div>
 </div>
+
 
 
 
@@ -196,10 +318,16 @@
 
         <!-- Navigation Links -->
         <nav class="px-4 space-y-3 text-gray-800">
-            <a class="flex items-center space-x-2 hover:text-green-600">
+            {% comment %} <a class="flex items-center space-x-2 hover:text-green-600">
                 <i class="fas fa-shopping-cart w-5 text-center"></i>
                 <span>Кошик</span>
-            </a>
+            </a> {% endcomment %}
+
+            <button id="open-cart-modal1"
+                    class="flex-1 flex items-center justify-center gap-2 hover:text-green-600 focus:outline-none">
+                    <i class="fa-solid fa-shopping-cart"></i>
+                    <span>Кошик</span>
+            </button>
             <a href="#" class="flex items-center space-x-2 hover:text-green-600">
                 <i class="fas fa-random w-5 text-center"></i>
                 <span>Списки порівнянь</span>
@@ -258,7 +386,7 @@
                     </button>
 
                     {% if user.is_authenticated %}
-                    <a href="#" class="flex-1 flex items-center justify-center gap-2 hover:text-green-600">
+                    <a href="{% url 'order_history' %}" class="flex-1 flex items-center justify-center gap-2 hover:text-green-600">
                         <i class="fa-solid fa-bag-shopping"></i>
                         <span>Замовлення</span>
                     </a>
@@ -272,7 +400,7 @@
 
                     <button id="open-cart-modal"
                         class="flex-1 flex items-center justify-center gap-2 hover:text-green-600 focus:outline-none">
-                        <i class="fa-solid fa-basket-shopping"></i>
+                        <i class="fa-solid fa-shopping-cart"></i>
                         <span>Кошик</span>
                     </button>
 
@@ -315,7 +443,7 @@
             </form>
 
             <!-- Icons -->
-            <button class="text-white hover:text-green-600">
+            <button onclick="openFavoritesModal()" class="text-white hover:text-green-600">
                 <i class="fa-regular text-xl fa-heart"></i>
             </button>
             <button class="text-white hover:text-green-600">
@@ -405,254 +533,397 @@
     </footer>
 
     <script>
-document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', () => {
     const cartModal = document.getElementById('cartModal');
     const openCartModalBtn = document.getElementById('open-cart-modal');
     const closeCartModalBtn = document.getElementById('closeCartModal');
     const cartItemsContainer = document.getElementById('cartItemsContainer');
     const emptyCartMessage = document.getElementById('emptyCartMessage');
     const totalPriceElement = document.getElementById('totalPrice');
+    const checkoutBtn = document.getElementById('checkoutBtn');
+    const checkoutLink = document.getElementById('checkoutLink');
+    const promoInput = document.getElementById('promoInput');
+    const applyPromoBtn = document.getElementById('applyPromoBtn');
 
-    // 🔓 Відкрити кошик (витягуємо дані з Django)
-    openCartModalBtn?.addEventListener('click', () => {
-        fetch('/cart/json/')   // зроби ендпоінт у Django, який повертає session cart у JSON
-            .then(res => res.json())
-            .then(data => updateCartModal(data));
+    let currentDiscount = 0;
+
+    // Get CSRF token
+    function getCsrfToken() {
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+        if (csrfToken) return csrfToken.value;
+        
+        // Try to get from meta tag
+        const metaCsrf = document.querySelector('meta[name="csrf-token"]');
+        if (metaCsrf) return metaCsrf.getAttribute('content');
+        
+        // Try to get from cookie
+        const cookieValue = document.cookie
+            .split('; ')
+            .find(row => row.startsWith('csrftoken='))
+            ?.split('=')[1];
+        return cookieValue || '';
+    }
+
+    // 🔓 Open cart modal
+    openCartModalBtn?.addEventListener('click', (e) => {
+        e.preventDefault();
+        loadCartData();
         cartModal.classList.remove('hidden');
     });
 
-    // ❌ Закрити кошик
     closeCartModalBtn?.addEventListener('click', () => {
         cartModal.classList.add('hidden');
     });
 
-    // 🛒 Додавання товару в кошик (оновлює session на сервері)
-    document.querySelectorAll('[data-product-id]').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const id = btn.dataset.productId;
+    cartModal?.addEventListener('click', e => {
+        if (e.target === cartModal) {
+            cartModal.classList.add('hidden');
+        }
+    });
 
-            fetch(`/add-to-cart/${id}/`, {
-                method: "POST",
-                headers: {
-                    "X-CSRFToken": getCookie("csrftoken"),
-                },
-            }).then(() => {
-                // після успіху можна оновити кошик
-                fetch('/cart/json/')
-                    .then(res => res.json())
-                    .then(data => {console.log(data); updateCartModal(data)});
+    // 🎯 Add/Remove product from cart
+    document.querySelectorAll('[data-product-id]').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const productId = btn.dataset.productId;
+            const isAdded = btn.dataset.added === 'true';
+
+            try {
+                if (isAdded) {
+                    await removeFromCart(productId);
+                    btn.dataset.added = 'false';
+                    btn.classList.remove('text-green-600');
+                    btn.classList.add('text-gray-700');
+                } else {
+                    await addToCart(productId);
+                    btn.dataset.added = 'true';
+                    btn.classList.remove('text-gray-700');
+                    btn.classList.add('text-green-600');
+                }
+
+                loadCartData();
                 cartModal.classList.remove('hidden');
-            });
+            } catch (error) {
+                console.error('Error updating cart:', error);
+                alert('Сталася помилка при оновленні кошика');
+            }
         });
     });
 
-    // 🔄 Рендер модалки з JSON-даних
-    function updateCartModal(data) {
+    // 📦 Add product to cart
+    async function addToCart(productId) {
+        const response = await fetch('/cart/add/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken(),
+            },
+            body: JSON.stringify({
+                product_id: productId
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        if (!data.success) {
+            throw new Error(data.error || 'Failed to add to cart');
+        }
+        
+        updateCartCount(data.cart_count);
+        return data;
+    }
+
+    // 🗑️ Remove product from cart
+    async function removeFromCart(productId) {
+        const response = await fetch('/cart/remove/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken(),
+            },
+            body: JSON.stringify({
+                product_id: productId
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        if (!data.success) {
+            throw new Error(data.error || 'Failed to remove from cart');
+        }
+        
+        updateCartCount(data.cart_count);
+        return data;
+    }
+
+    // 🔄 Update quantity in cart
+    async function updateQuantity(productId, action) {
+        const response = await fetch('/cart/update/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken(),
+            },
+            body: JSON.stringify({
+                product_id: productId,
+                action: action
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        if (!data.success) {
+            throw new Error(data.error || 'Failed to update quantity');
+        }
+        
+        updateCartCount(data.cart_count);
+        return data;
+    }
+
+    // 📊 Load cart data
+    async function loadCartData() {
+        try {
+            const response = await fetch('/cart/get/');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            console.log('Cart data loaded:', data); // Debug log
+            updateCartModal(data);
+            updateCartCount(data.cart_count);
+        } catch (error) {
+            console.error('Error loading cart:', error);
+        }
+    }
+
+    // 🔄 Update cart modal display
+    function updateCartModal(cartData) {
+        console.log('Updating cart modal with data:', cartData); // Debug log
         cartItemsContainer.innerHTML = '';
 
-        if (data.items.length === 0) {
+        if (!cartData.items || cartData.items.length === 0) {
             cartItemsContainer.classList.add('hidden');
             emptyCartMessage.classList.remove('hidden');
             totalPriceElement.textContent = '0 ₴';
+            checkoutBtn.disabled = true;
+            checkoutLink.style.pointerEvents = 'none';
+            checkoutLink.style.opacity = '0.5';
             return;
         }
 
         cartItemsContainer.classList.remove('hidden');
         emptyCartMessage.classList.add('hidden');
+        checkoutBtn.disabled = false;
+        checkoutLink.style.pointerEvents = 'auto';
+        checkoutLink.style.opacity = '1';
 
-        data.items.forEach(item => {
-            const div = document.createElement('div');
-            div.className = 'flex items-center justify-between border-b pb-2';
-            div.innerHTML = `
-                <div class="flex items-center space-x-4">
-                    <img src="${item.image}" alt="${item.name}" class="w-12 h-12 object-contain rounded">
-                    <div>
-                        <p class="text-sm font-semibold">${item.name}</p>
-                        <p class="text-sm text-gray-500">${item.price} ₴ x ${item.quantity} = <b>${item.total} ₴</b></p>
-                    </div>
-                </div>
-            `;
-            cartItemsContainer.appendChild(div);
+        // Calculate total price
+        let calculatedTotal = 0;
+        cartData.items.forEach(item => {
+            calculatedTotal += parseFloat(item.total) || 0;
         });
 
-        totalPriceElement.textContent = `${data.total_price} ₴`;
-    }
+        cartData.items.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'flex items-center justify-between border-b pb-2 mb-2';
+            div.dataset.productId = item.id;
 
-    // 🔑 Дістаємо CSRF токен із куків
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let cookie of cookies) {
-                cookie = cookie.trim();
-                if (cookie.startsWith(name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-});
-</script>
-
-    <!-- <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const cartModal = document.getElementById('cartModal');
-            const openCartModalBtn = document.getElementById('open-cart-modal');
-            const closeCartModalBtn = document.getElementById('closeCartModal');
-            const cartItemsContainer = document.getElementById('cartItemsContainer');
-            const emptyCartMessage = document.getElementById('emptyCartMessage');
-            const totalPriceElement = document.getElementById('totalPrice');
-            const checkoutBtn = document.getElementById('checkoutBtn');
-            const promoInput = document.getElementById('promoInput');
-            const applyPromoBtn = document.getElementById('applyPromoBtn');
-
-            const openAuthmodal = document.getElementById('');
-
-            let cart = new Map();
-            let discount = 0;
-
-            // 🔓 Відкрити кошик
-            openCartModalBtn?.addEventListener('click', () => {
-                updateCartModal();
-                cartModal.classList.remove('hidden');
-            });
-
-            // ❌ Закрити кошик
-            closeCartModalBtn?.addEventListener('click', () => {
-                cartModal.classList.add('hidden');
-            });
-
-            cartModal?.addEventListener('click', e => {
-                if (e.target === cartModal) {
-                    cartModal.classList.add('hidden');
-                }
-            });
-
-            // 🎯 Додавання/видалення товару
-            document.querySelectorAll('[data-product-id]').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const id = btn.dataset.productId;
-                    const name = btn.dataset.productName;
-                    const price = parseFloat(btn.dataset.productPrice);
-                    const image = btn.dataset.productImage;
-
-                    if (cart.has(id)) {
-                        cart.delete(id);
-                        btn.dataset.added = 'false';
-                        btn.classList.remove('text-green-600');
-                        btn.classList.add('text-gray-700');
-                    } else {
-                        cart.set(id, { name, price, image, quantity: 1 });
-                        btn.dataset.added = 'true';
-                        btn.classList.remove('text-gray-700');
-                        btn.classList.add('text-green-600');
-                    }
-
-                    updateCartModal();
-                    cartModal.classList.remove('hidden');
-                });
-            });
-
-            // 🔄 Оновлення модалки
-            function updateCartModal() {
-                cartItemsContainer.innerHTML = '';
-
-                if (cart.size === 0) {
-                    cartItemsContainer.classList.add('hidden');
-                    emptyCartMessage.classList.remove('hidden');
-                    totalPriceElement.textContent = '0 ₴';
-                    return;
-                }
-
-                cartItemsContainer.classList.remove('hidden');
-                emptyCartMessage.classList.add('hidden');
-
-                let total = 0;
-
-                cart.forEach((item, id) => {
-                    const itemTotal = item.price * item.quantity;
-                    total += itemTotal;
-
-                    const div = document.createElement('div');
-                    div.className = 'flex items-center justify-between border-b pb-2';
-
-                    div.innerHTML = `
+            div.innerHTML = `
                 <div class="flex items-center space-x-4">
-                    <img src="${item.image}" alt="${item.name}" class="w-12 h-12 object-contain rounded">
+                    <img src="${item.image || '/static/images/default.jpg'}" alt="${item.name}" class="w-12 h-12 object-contain rounded">
                     <div>
                         <p class="text-sm font-semibold">${item.name}</p>
-                        <p class="text-sm text-gray-500">${item.price} ₴ x ${item.quantity} = <b>${itemTotal} ₴</b></p>
+                        <p class="text-sm text-gray-500">${item.price} ₴ x ${item.quantity} = <b>${item.total.toFixed(2)} ₴</b></p>
                     </div>
                 </div>
                 <div class="flex items-center space-x-2">
-                    <button data-decrease-id="${id}" class="px-2 bg-gray-200 rounded">-</button>
-                    <button data-increase-id="${id}" class="px-2 bg-gray-200 rounded">+</button>
-                    <button data-remove-id="${id}" class="text-red-500 hover:text-red-700 text-lg">&times;</button>
+                    <button data-decrease-id="${item.id}" class="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300 transition">-</button>
+                    <span class="mx-2 font-medium">${item.quantity}</span>
+                    <button data-increase-id="${item.id}" class="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300 transition">+</button>
+                    <button data-remove-id="${item.id}" class="text-red-500 hover:text-red-700 text-lg ml-2">&times;</button>
                 </div>
             `;
 
-                    cartItemsContainer.appendChild(div);
-                });
+            cartItemsContainer.appendChild(div);
+        });
 
-                // Знижка
-                if (discount > 0) {
-                    total = total - (total * discount / 100);
+        // Apply discount to total
+        let finalTotal = calculatedTotal;
+        if (currentDiscount > 0) {
+            finalTotal = calculatedTotal - (calculatedTotal * currentDiscount / 100);
+        }
+
+        console.log('Setting total price:', finalTotal); // Debug log
+        totalPriceElement.textContent = `${finalTotal.toFixed(2)} ₴`;
+
+        // Add event listeners for quantity buttons
+        attachQuantityListeners();
+    }
+    // 🔘 Attach event listeners to quantity buttons
+    function attachQuantityListeners() {
+        // Remove item buttons
+        document.querySelectorAll('[data-remove-id]').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.preventDefault();
+                const productId = btn.dataset.removeId;
+                try {
+                    await removeFromCart(productId);
+                    loadCartData();
+                    
+                    // Update product button state
+                    const productBtn = document.querySelector(`[data-product-id="${productId}"]`);
+                    if (productBtn) {
+                        productBtn.dataset.added = 'false';
+                        productBtn.classList.remove('text-green-600');
+                        productBtn.classList.add('text-gray-700');
+                    }
+                } catch (error) {
+                    console.error('Error removing item:', error);
+                    alert('Помилка при видаленні товару');
                 }
-
-                totalPriceElement.textContent = `${total.toFixed(2)} ₴`;
-
-                // Видалення товару
-                document.querySelectorAll('[data-remove-id]').forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        const id = btn.dataset.removeId;
-                        cart.delete(id);
-                        updateCartModal();
-                    });
-                });
-
-                // Зменшення кількості
-                document.querySelectorAll('[data-decrease-id]').forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        const id = btn.dataset.decreaseId;
-                        if (cart.get(id).quantity > 1) {
-                            cart.get(id).quantity--;
-                        }
-                        updateCartModal();
-                    });
-                });
-
-                // Збільшення кількості
-                document.querySelectorAll('[data-increase-id]').forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        const id = btn.dataset.increaseId;
-                        cart.get(id).quantity++;
-                        updateCartModal();
-                    });
-                });
-            }
-            
-
-            // Промокод
-            applyPromoBtn?.addEventListener('click', () => {
-                const code = promoInput.value.trim();
-                if (code === "SALE10") {
-                    discount = 10;
-                    alert("✅ Промокод застосовано: -10%");
-                } else {
-                    discount = 0;
-                    alert("❌ Невірний промокод");
-                }
-                updateCartModal();
-            });
-
-            // Оформлення
-            checkoutBtn?.addEventListener('click', () => {
-                window.location.href = "/checkout/";
             });
         });
-    </script> -->
+
+        // Decrease quantity buttons
+        document.querySelectorAll('[data-decrease-id]').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.preventDefault();
+                const productId = btn.dataset.decreaseId;
+                try {
+                    await updateQuantity(productId, 'decrease');
+                    loadCartData();
+                    
+                    // Check if item was removed completely
+                    setTimeout(() => {
+                        const cartItem = document.querySelector(`[data-product-id="${productId}"]`);
+                        if (!cartItemsContainer.querySelector(`[data-product-id="${productId}"]`)) {
+                            const productBtn = document.querySelector(`[data-product-id="${productId}"]`);
+                            if (productBtn) {
+                                productBtn.dataset.added = 'false';
+                                productBtn.classList.remove('text-green-600');
+                                productBtn.classList.add('text-gray-700');
+                            }
+                        }
+                    }, 100);
+                } catch (error) {
+                    console.error('Error decreasing quantity:', error);
+                    alert('Помилка при зменшенні кількості');
+                }
+            });
+        });
+
+        // Increase quantity buttons
+        document.querySelectorAll('[data-increase-id]').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.preventDefault();
+                const productId = btn.dataset.increaseId;
+                try {
+                    await updateQuantity(productId, 'increase');
+                    loadCartData();
+                } catch (error) {
+                    console.error('Error increasing quantity:', error);
+                    alert('Помилка при збільшенні кількості');
+                }
+            });
+        });
+    }
+
+    // 🎫 Apply promo code
+    applyPromoBtn?.addEventListener('click', async (e) => {
+        e.preventDefault();
+        const promoCode = promoInput.value.trim();
+        
+        if (!promoCode) {
+            alert('Введіть промокод');
+            return;
+        }
+        
+        try {
+            const response = await fetch('/cart/promo/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken(),
+                },
+                body: JSON.stringify({
+                    promo_code: promoCode
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            if (data.success) {
+                currentDiscount = data.discount;
+                alert(data.message);
+                loadCartData(); // Refresh cart with new discount
+                promoInput.value = ''; // Clear input
+            } else {
+                alert(data.message || 'Невірний промокод');
+            }
+        } catch (error) {
+            console.error('Error applying promo:', error);
+            alert('Сталася помилка при застосуванні промокоду');
+        }
+    });
+
+    // 📈 Update cart count in header
+    function updateCartCount(count) {
+        const cartCountElement = document.getElementById('cart-count');
+        if (cartCountElement) {
+            cartCountElement.textContent = count || 0;
+            cartCountElement.classList.toggle('hidden', !count || count === 0);
+        }
+    }
+
+    // 🛒 Checkout button
+    checkoutBtn?.addEventListener('click', (e) => {
+        // Let the link handle navigation, but you can add validation here
+        console.log('Checkout clicked');
+    });
+
+    // 🚀 Initialize cart state on page load
+    loadCartData();
+
+    // 🔄 Initialize product button states based on cart
+    async function initializeProductButtons() {
+        try {
+            const response = await fetch('/cart/get/');
+            if (!response.ok) return;
+            
+            const data = await response.json();
+            
+            // Update all product buttons based on cart contents
+            if (data.items && data.items.length > 0) {
+                data.items.forEach(item => {
+                    const productBtn = document.querySelector(`[data-product-id="${item.id}"]`);
+                    if (productBtn) {
+                        productBtn.dataset.added = 'true';
+                        productBtn.classList.remove('text-gray-700');
+                        productBtn.classList.add('text-green-600');
+                    }
+                });
+            }
+        } catch (error) {
+            console.error('Error initializing product buttons:', error);
+        }
+    }
+
+    // Initialize product button states
+    initializeProductButtons();
+});
+    </script>
 
 
     <script>
@@ -720,29 +991,179 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     </script>
     <script>
-        // Favorites Modal
+// Favorites Modal
 const favoritesModal = document.getElementById("favoritesModal");
+const favoritesModalContent = document.getElementById("favoritesModalContent");
 const closeFavoritesModal = document.getElementById("closeFavoritesModal");
 const favoritesBtn = document.querySelector("button .fa-heart")?.parentElement;
-const clearFavoritesBtn = document.getElementById("clearFavoritesBtn");
+const clearAllBtn = document.getElementById("clearAllBtn");
 
+// Event listeners for modal
 favoritesBtn?.addEventListener("click", () => {
-    favoritesModal.classList.remove("hidden");
-});
-closeFavoritesModal?.addEventListener("click", () => {
-    favoritesModal.classList.add("hidden");
-});
-favoritesModal?.addEventListener("click", (e) => {
-    if (e.target === favoritesModal) favoritesModal.classList.add("hidden");
+    openFavoritesModal();
 });
 
-// Clear favorites example (frontend only, you can connect Django later)
-clearFavoritesBtn?.addEventListener("click", () => {
-    document.getElementById("favoritesItemsContainer").innerHTML = "";
-    document.getElementById("favoritesItemsContainer").classList.add("hidden");
-    document.getElementById("emptyFavoritesMessage").classList.remove("hidden");
+closeFavoritesModal?.addEventListener("click", () => {
+    closeFavoritesModalFunc();
 });
-    </script>
+
+favoritesModal?.addEventListener("click", (e) => {
+    if (e.target === favoritesModal) {
+        closeFavoritesModalFunc();
+    }
+});
+
+// Escape key to close
+document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !favoritesModal.classList.contains("hidden")) {
+        closeFavoritesModalFunc();
+    }
+});
+
+// Open modal function
+function openFavoritesModal() {
+    favoritesModal.classList.remove("hidden");
+    favoritesModal.classList.add("flex");
+    
+    // Trigger animation
+    setTimeout(() => {
+        favoritesModalContent.classList.remove("scale-95", "opacity-0");
+        favoritesModalContent.classList.add("scale-100", "opacity-100");
+    }, 10);
+    
+    loadFavorites();
+}
+
+// Close modal function
+function closeFavoritesModalFunc() {
+    favoritesModalContent.classList.remove("scale-100", "opacity-100");
+    favoritesModalContent.classList.add("scale-95", "opacity-0");
+    
+    setTimeout(() => {
+        favoritesModal.classList.add("hidden");
+        favoritesModal.classList.remove("flex");
+    }, 300);
+}
+
+// Load favorites function
+async function loadFavorites() {
+    const favoritesListUrl = "{% url 'favorites_list' %}";
+    const container = document.getElementById("favoritesItemsContainer");
+    const emptyMessage = document.getElementById("emptyFavoritesMessage");
+    const loadingState = document.getElementById("loadingState");
+    const countBadge = document.getElementById("favoritesCount");
+    
+    // Show loading state
+    container.innerHTML = ""; // Clear existing items to prevent duplicates
+    emptyMessage.classList.add("hidden");
+    loadingState.classList.remove("hidden");
+    
+    try {
+        const response = await fetch(favoritesListUrl);
+        const data = await response.json();
+        
+        loadingState.classList.add("hidden");
+        
+        if (data.items && data.items.length > 0) {
+            countBadge.textContent = data.items.length;
+            
+            // Create items string first, then set innerHTML once
+            let itemsHTML = '';
+            data.items.forEach((item, index) => {
+                itemsHTML += `
+                    <div class="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-200 overflow-hidden group" 
+                         style="animation: fadeInUp 0.5s ease-out ${index * 0.1}s both;">
+                        <div class="aspect-square overflow-hidden relative bg-gray-100">
+                            <a href="/product/${item.id}/" class="block"/>
+                            ${item.image ? `
+                                <img src="${item.image}" alt="${item.name}"
+                                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                            ` : `
+                                <div class="w-full h-full flex items-center justify-center text-gray-400">
+                                    <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 002 2v12a2 2 0 002 2z"/>
+                                    </svg>
+                                </div>
+                            `}
+                            
+                            <div class="absolute top-2 right-2">
+                                <button class="w-8 h-8 bg-white/90 rounded-full flex items-center justify-center text-red-500 hover:bg-red-50 transition-colors duration-200 shadow-md"
+                                        onclick="toggleFavorite(${item.id}, this)">
+                                    <i class="fas fa-heart text-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="p-4">
+                            <a href="/product/${item.id}/" class="block">
+                                <h4 class="font-semibold text-gray-800 text-base mb-2 line-clamp-2">
+                                    ${item.name}
+                                </h4>
+                            </a>
+                            
+                            <div class="flex items-center justify-between">
+                                <span class="text-lg font-bold text-green-600">${item.price} ₴</span>
+                                <button class="bg-green-600 text-white px-3 py-1 rounded-md hover:bg-green-700 transition-colors duration-200 text-sm font-medium">
+                                    Купити
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = itemsHTML; // Set all items at once
+        } else {
+            countBadge.textContent = "0";
+            emptyMessage.classList.remove("hidden");
+        }
+    } catch (error) {
+        console.error('Error loading favorites:', error);
+        loadingState.classList.add("hidden");
+        emptyMessage.classList.remove("hidden");
+        countBadge.textContent = "0";
+    }
+}
+
+// Clear all favorites (frontend only - you can connect Django later)
+clearAllBtn?.addEventListener("click", () => {
+    if (confirm("Ви впевнені, що хочете видалити всі обрані товари?")) {
+        const container = document.getElementById("favoritesItemsContainer");
+        const items = container.querySelectorAll('.group');
+        
+        // Animate removal
+        items.forEach((item, index) => {
+            setTimeout(() => {
+                item.style.transform = "translateY(-30px) scale(0.8)";
+                item.style.opacity = "0";
+            }, index * 50);
+        });
+        
+        // Clear after animation
+        setTimeout(() => {
+            container.innerHTML = "";
+            document.getElementById("emptyFavoritesMessage").classList.remove("hidden");
+            document.getElementById("favoritesCount").textContent = "0";
+        }, items.length * 50 + 300);
+    }
+});
+
+// Add CSS animation keyframes
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+`;
+document.head.appendChild(style);
+</script>
 
 
 

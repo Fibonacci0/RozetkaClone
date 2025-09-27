@@ -107,25 +107,29 @@ WSGI_APPLICATION = 'RozetkaClone.wsgi.application'
 
 DATABASES = {
     'default': dj_database_url.config(
-        default=("postgresql://neondb_owner:npg_9DZGQYnKfSR1@ep-shy-boat-agwxkdgx-pooler.c-2.eu-central-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require") # "dev" - newest branch
-        #default=("postgresql://neondb_owner:npg_9DZGQYnKfSR1@ep-proud-mode-agwc0uy7-pooler.c-2.eu-central-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require") # "prod" - older branch, use as example 
+        #newest db, 26.09
+        default=("postgresql://neondb_owner:npg_9DZGQYnKfSR1@ep-patient-haze-agrrhovd-pooler.c-2.eu-central-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require")
+        #default=("postgresql://neondb_owner:npg_9DZGQYnKfSR1@ep-shy-boat-agwxkdgx-pooler.c-2.eu-central-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require") # "dev" - 
 
         
     )
 }
 
-VONAGE_API_KEY = 1
-VONAGE_API_SECRET = 1
-VONAGE_SENDER_ID = 1
+VONAGE_API_KEY = env('VONAGE_API_KEY')
+VONAGE_API_SECRET = env('VONAGE_API_SECRET')
+VONAGE_SENDER_ID = env('VONAGE_SENDER_ID')
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 1
-DEFAULT_FROM_EMAIL = 1
-EMAIL_HOST_PASSWORD = 1
+EMAIL_HOST_USER = env('EMAIL_HOST_USER')
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL')
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
 
+AZURE_ACCOUNT_NAME = env('AZURE_ACCOUNT_NAME')
+AZURE_ACCOUNT_KEY = env('AZURE_ACCOUNT_KEY')
+DEFAULT_FILE_STORAGE = env('DEFAULT_FILE_STORAGE')
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
