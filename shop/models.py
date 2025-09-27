@@ -1,3 +1,4 @@
+import uuid
 from django.db import models
 from django.utils import timezone
 from django.utils.text import slugify
@@ -137,7 +138,89 @@ class Promo(models.Model):
     def __str__(self):
         return self.name
 
+class Order(models.Model):
+    DELIVERY_CHOICES = [
+        ('nova_poshta', 'Нова Пошта'),
+        ('ukr_poshta', 'Укрпошта'),
+        ('courier', 'Кур\'єрська доставка'),
+    ]
+    
+    PAYMENT_CHOICES = [
+        ('cash_on_delivery', 'Оплата при отриманні'),
+        ('card', 'Оплата карткою'),
+    ]
+    
+    STATUS_CHOICES = [
+        ('pending', 'Очікує обробки'),
+        ('confirmed', 'Підтверджено'),
+        ('processing', 'В обробці'),
+        ('shipped', 'Відправлено'),
+        ('delivered', 'Доставлено'),
+        ('cancelled', 'Скасовано'),
+    ]
 
+    # Order identification
+    order_number = models.CharField(max_length=50, unique=True, default=uuid.uuid4)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    
+    # Customer information
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    email = models.EmailField()
+    phone = models.CharField(max_length=20)
+    address = models.TextField()
+    
+    # Order details
+    delivery_method = models.CharField(max_length=20, choices=DELIVERY_CHOICES)
+    payment_method = models.CharField(max_length=20, choices=PAYMENT_CHOICES)
+    comments = models.TextField(blank=True)
+    
+    # Pricing
+    subtotal = models.DecimalField(max_digits=10, decimal_places=2)
+    delivery_fee = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    total = models.DecimalField(max_digits=10, decimal_places=2)
+    
+
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+
+    is_paid = models.BooleanField(default=False)
+    paid_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Order #{self.order_number} - {self.first_name} {self.last_name}"
+    
+    def get_status_display_color(self):
+        """Return Bootstrap color class for status"""
+        colors = {
+            'pending': 'warning',
+            'confirmed': 'info',
+            'processing': 'primary',
+            'shipped': 'success',
+            'delivered': 'success',
+            'cancelled': 'danger',
+        }
+        return colors.get(self.status, 'secondary')
+
+
+class OrderItem(models.Model):
+    order = models.ForeignKey(Order, related_name='items', on_delete=models.CASCADE)
+    product = models.ForeignKey('Product', on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=1)
+    price = models.DecimalField(max_digits=10, decimal_places=2)  # Price at time of order
+    
+    def __str__(self):
+        return f"{self.quantity}x {self.product.name} for Order #{self.order.order_number}"
+    
+    @property
+    def total_price(self):
+        return self.quantity * self.price
 
 class Review(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='reviews')

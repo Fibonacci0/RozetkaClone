@@ -73,49 +73,60 @@
 
 <body class="min-h-screen flex flex-col bg-gray-50">
     <!-- Cart Modal -->
-    <div id="cartModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
-        <div
-            class="bg-white w-full max-w-xl max-h-[80vh] p-6 rounded-xl relative shadow-2xl flex flex-col text-left overflow-y-auto">
-            <button id="closeCartModal"
-                class="absolute top-4 right-4 text-gray-400 hover:text-black text-2xl leading-none">&times;</button>
-
-            <!-- Заголовок -->
-            <h2 class="text-2xl font-bold mb-4 text-center">Корзина</h2>
-
-            <div id="cartContent" class="relative h-80">
-
-                <!-- Список товарів -->
-                <div id="cartItemsContainer" class="hidden h-full overflow-y-auto space-y-4 pr-2"></div>
-
-                <!-- Порожній кошик -->
-                <div id="emptyCartMessage"
-                    class="absolute inset-0 flex flex-col items-center justify-center text-gray-500">
-                    <img src="{% static 'images/Frame 167.png' %}" alt="Cart Icon"
-                        class="mx-auto mb-4 w-65 h-65 object-contain" />
-                </div>
+<div id="cartModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
+    <div class="bg-white w-full max-w-xl max-h-[80vh] p-6 rounded-xl relative shadow-2xl flex flex-col text-left overflow-hidden">
+        <button id="closeCartModal"
+            class="absolute top-4 right-4 text-gray-400 hover:text-black text-2xl leading-none z-10">&times;</button>
+        
+        <!-- Заголовок -->
+        <h2 class="text-2xl font-bold mb-4 text-center pr-8">Кошик</h2>
+        
+        <!-- Контент кошика -->
+        <div id="cartContent" class="flex-1 overflow-hidden">
+            <!-- Список товарів -->
+            <div id="cartItemsContainer" class="hidden h-80 overflow-y-auto space-y-4 pr-2 mb-4">
+                <!-- Items will be populated by JavaScript -->
             </div>
-
-            <!-- Підсумок -->
-            <div class="mt-4 flex justify-between">
-                <span>Разом:</span>
-                <span id="totalPrice">0 ₴</span>
+            
+            <!-- Порожній кошик -->
+            <div id="emptyCartMessage" class="flex flex-col items-center justify-center text-gray-500">
+                <img src="{% static 'images/Frame 167.png' %}" alt="Cart Icon"
+                    class="mx-auto mb-4 w-32 h-32 object-contain" />
+                <p class="text-lg">Ваш кошик порожній</p>
+                <p class="text-sm">Додайте товари для покупки</p>
             </div>
-
+        </div>
+        
+        <!-- Підсумок -->
+        <div class="border-t pt-4 mt-4">
+            <div class="flex justify-between text-lg font-semibold mb-4">
+                <span>Загальна сума:</span>
+                <span id="totalPrice" class="text-green-600">0 ₴</span>
+            </div>
+            
             <!-- Промокод -->
-            <div class="mt-2 flex space-x-2">
-                <input id="promoInput" type="text" placeholder="Промокод" class="border rounded px-2 py-1 flex-1">
-                <button id="applyPromoBtn" class="bg-gray-200 px-3 py-1 rounded">OK</button>
+            <div class="flex space-x-2 mb-4">
+                <input id="promoInput" 
+                       type="text" 
+                       placeholder="Введіть промокод" 
+                       class="border border-gray-300 rounded-lg px-3 py-2 flex-1 focus:outline-none focus:border-green-500">
+                <button id="applyPromoBtn" 
+                        class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition duration-300">
+                    Застосувати
+                </button>
             </div>
-
-            <a id="checkoutLink" href="{% url 'payment_page' %}">
+            
+            <!-- Кнопка оформлення -->
+            <a id="checkoutLink" href="{% url 'payment_page' %}" class="block">
                 <button id="checkoutBtn"
-                    class="bg-green-600 text-white text-lg font-semibold px-6 py-3 rounded-xl shadow hover:bg-green-700 transition">
-                    Придбати
+                        class="w-full bg-green-600 text-white text-lg font-semibold px-6 py-3 rounded-xl shadow hover:bg-green-700 transition duration-300 disabled:bg-gray-400 disabled:cursor-not-allowed">
+                    Перейти до оплати
                 </button>
             </a>
-
         </div>
     </div>
+</div>
+
 <!-- Favorites Modal -->
 <div id="favoritesModal" 
      class="fixed inset-0 bg-black bg-opacity-60 z-50 hidden items-center justify-center p-4">
@@ -319,7 +330,7 @@
                     </button>
 
                     {% if user.is_authenticated %}
-                    <a href="#" class="flex-1 flex items-center justify-center gap-2 hover:text-green-600">
+                    <a href="{% url 'order_history' %}" class="flex-1 flex items-center justify-center gap-2 hover:text-green-600">
                         <i class="fa-solid fa-bag-shopping"></i>
                         <span>Замовлення</span>
                     </a>
@@ -466,160 +477,319 @@
     </footer>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const cartModal = document.getElementById('cartModal');
-            const openCartModalBtn = document.getElementById('open-cart-modal');
-            const closeCartModalBtn = document.getElementById('closeCartModal');
-            const cartItemsContainer = document.getElementById('cartItemsContainer');
-            const emptyCartMessage = document.getElementById('emptyCartMessage');
-            const totalPriceElement = document.getElementById('totalPrice');
-            const checkoutBtn = document.getElementById('checkoutBtn');
-            const promoInput = document.getElementById('promoInput');
-            const applyPromoBtn = document.getElementById('applyPromoBtn');
+    document.addEventListener('DOMContentLoaded', () => {
+    const cartModal = document.getElementById('cartModal');
+    const openCartModalBtn = document.getElementById('open-cart-modal');
+    const closeCartModalBtn = document.getElementById('closeCartModal');
+    const cartItemsContainer = document.getElementById('cartItemsContainer');
+    const emptyCartMessage = document.getElementById('emptyCartMessage');
+    const totalPriceElement = document.getElementById('totalPrice');
+    const checkoutBtn = document.getElementById('checkoutBtn');
+    const checkoutLink = document.getElementById('checkoutLink');
+    const promoInput = document.getElementById('promoInput');
+    const applyPromoBtn = document.getElementById('applyPromoBtn');
 
-            const openAuthmodal = document.getElementById('');
+    let currentDiscount = 0;
 
-            let cart = new Map();
-            let discount = 0;
+    // Get CSRF token
+    function getCsrfToken() {
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+        return csrfToken ? csrfToken.value : '';
+    }
 
-            // 🔓 Відкрити кошик
-            openCartModalBtn?.addEventListener('click', () => {
-                updateCartModal();
+    // 🔓 Open cart modal
+    openCartModalBtn?.addEventListener('click', () => {
+        loadCartData();
+        cartModal.classList.remove('hidden');
+    });
+
+    // ❌ Close cart modal
+    closeCartModalBtn?.addEventListener('click', () => {
+        cartModal.classList.add('hidden');
+    });
+
+    cartModal?.addEventListener('click', e => {
+        if (e.target === cartModal) {
+            cartModal.classList.add('hidden');
+        }
+    });
+
+    // 🎯 Add/Remove product from cart
+    document.querySelectorAll('[data-product-id]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const productId = btn.dataset.productId;
+            const isAdded = btn.dataset.added === 'true';
+
+            try {
+                if (isAdded) {
+                    // Remove from cart
+                    await removeFromCart(productId);
+                    btn.dataset.added = 'false';
+                    btn.classList.remove('text-green-600');
+                    btn.classList.add('text-gray-700');
+                } else {
+                    // Add to cart
+                    await addToCart(productId);
+                    btn.dataset.added = 'true';
+                    btn.classList.remove('text-gray-700');
+                    btn.classList.add('text-green-600');
+                }
+
+                loadCartData();
                 cartModal.classList.remove('hidden');
-            });
+            } catch (error) {
+                console.error('Error updating cart:', error);
+                alert('Сталася помилка при оновленні кошика');
+            }
+        });
+    });
 
-            // ❌ Закрити кошик
-            closeCartModalBtn?.addEventListener('click', () => {
-                cartModal.classList.add('hidden');
-            });
+    // 📦 Add product to cart
+    async function addToCart(productId) {
+        const response = await fetch('/cart/add/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken(),
+            },
+            body: JSON.stringify({
+                product_id: productId
+            })
+        });
 
-            cartModal?.addEventListener('click', e => {
-                if (e.target === cartModal) {
-                    cartModal.classList.add('hidden');
-                }
-            });
+        const data = await response.json();
+        if (!data.success) {
+            throw new Error(data.error || 'Failed to add to cart');
+        }
+        
+        updateCartCount(data.cart_count);
+        return data;
+    }
 
-            // 🎯 Додавання/видалення товару
-            document.querySelectorAll('[data-product-id]').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const id = btn.dataset.productId;
-                    const name = btn.dataset.productName;
-                    const price = parseFloat(btn.dataset.productPrice);
-                    const image = btn.dataset.productImage;
+    // 🗑️ Remove product from cart
+    async function removeFromCart(productId) {
+        const response = await fetch('/cart/remove/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken(),
+            },
+            body: JSON.stringify({
+                product_id: productId
+            })
+        });
 
-                    if (cart.has(id)) {
-                        cart.delete(id);
-                        btn.dataset.added = 'false';
-                        btn.classList.remove('text-green-600');
-                        btn.classList.add('text-gray-700');
-                    } else {
-                        cart.set(id, { name, price, image, quantity: 1 });
-                        btn.dataset.added = 'true';
-                        btn.classList.remove('text-gray-700');
-                        btn.classList.add('text-green-600');
-                    }
+        const data = await response.json();
+        if (!data.success) {
+            throw new Error(data.error || 'Failed to remove from cart');
+        }
+        
+        updateCartCount(data.cart_count);
+        return data;
+    }
 
-                    updateCartModal();
-                    cartModal.classList.remove('hidden');
-                });
-            });
+    // 🔄 Update quantity in cart
+    async function updateQuantity(productId, action) {
+        const response = await fetch('/cart/update/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken(),
+            },
+            body: JSON.stringify({
+                product_id: productId,
+                action: action
+            })
+        });
 
-            // 🔄 Оновлення модалки
-            function updateCartModal() {
-                cartItemsContainer.innerHTML = '';
+        const data = await response.json();
+        if (!data.success) {
+            throw new Error(data.error || 'Failed to update quantity');
+        }
+        
+        updateCartCount(data.cart_count);
+        return data;
+    }
 
-                if (cart.size === 0) {
-                    cartItemsContainer.classList.add('hidden');
-                    emptyCartMessage.classList.remove('hidden');
-                    totalPriceElement.textContent = '0 ₴';
-                    return;
-                }
+    // 📊 Load cart data
+    async function loadCartData() {
+        try {
+            const response = await fetch('/cart/get/');
+            const data = await response.json();
+            updateCartModal(data);
+            updateCartCount(data.cart_count);
+        } catch (error) {
+            console.error('Error loading cart:', error);
+        }
+    }
 
-                cartItemsContainer.classList.remove('hidden');
-                emptyCartMessage.classList.add('hidden');
+    // 🔄 Update cart modal display
+    function updateCartModal(cartData) {
+        cartItemsContainer.innerHTML = '';
 
-                let total = 0;
+        if (cartData.items.length === 0) {
+            cartItemsContainer.classList.add('hidden');
+            emptyCartMessage.classList.remove('hidden');
+            totalPriceElement.textContent = '0 ₴';
+            checkoutBtn.disabled = true;
+            checkoutLink.style.pointerEvents = 'none';
+            checkoutLink.style.opacity = '0.5';
+            return;
+        }
 
-                cart.forEach((item, id) => {
-                    const itemTotal = item.price * item.quantity;
-                    total += itemTotal;
+        cartItemsContainer.classList.remove('hidden');
+        emptyCartMessage.classList.add('hidden');
+        checkoutBtn.disabled = false;
+        checkoutLink.style.pointerEvents = 'auto';
+        checkoutLink.style.opacity = '1';
 
-                    const div = document.createElement('div');
-                    div.className = 'flex items-center justify-between border-b pb-2';
+        cartData.items.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'flex items-center justify-between border-b pb-2';
+            div.dataset.productId = item.id;
 
-                    div.innerHTML = `
+            div.innerHTML = `
                 <div class="flex items-center space-x-4">
                     <img src="${item.image}" alt="${item.name}" class="w-12 h-12 object-contain rounded">
                     <div>
                         <p class="text-sm font-semibold">${item.name}</p>
-                        <p class="text-sm text-gray-500">${item.price} ₴ x ${item.quantity} = <b>${itemTotal} ₴</b></p>
+                        <p class="text-sm text-gray-500">${item.price} ₴ x ${item.quantity} = <b>${item.total.toFixed(2)} ₴</b></p>
                     </div>
                 </div>
                 <div class="flex items-center space-x-2">
-                    <button data-decrease-id="${id}" class="px-2 bg-gray-200 rounded">-</button>
-                    <button data-increase-id="${id}" class="px-2 bg-gray-200 rounded">+</button>
-                    <button data-remove-id="${id}" class="text-red-500 hover:text-red-700 text-lg">&times;</button>
+                    <button data-decrease-id="${item.id}" class="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300 transition">-</button>
+                    <span class="mx-2 font-medium">${item.quantity}</span>
+                    <button data-increase-id="${item.id}" class="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300 transition">+</button>
+                    <button data-remove-id="${item.id}" class="text-red-500 hover:text-red-700 text-lg ml-2">&times;</button>
                 </div>
             `;
 
-                    cartItemsContainer.appendChild(div);
-                });
+            cartItemsContainer.appendChild(div);
+        });
 
-                // Знижка
-                if (discount > 0) {
-                    total = total - (total * discount / 100);
+        // Calculate total with discount
+        let total = cartData.total_price;
+        if (currentDiscount > 0) {
+            total = total - (total * currentDiscount / 100);
+        }
+
+        totalPriceElement.textContent = `${total.toFixed(2)} ₴`;
+
+        // Add event listeners for quantity buttons
+        attachQuantityListeners();
+    }
+
+    function attachQuantityListeners() {
+        document.querySelectorAll('[data-remove-id]').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const productId = btn.dataset.removeId;
+                try {
+                    await removeFromCart(productId);
+                    loadCartData();
+                    
+                    // Update product button state
+                    const productBtn = document.querySelector(`[data-product-id="${productId}"]`);
+                    if (productBtn) {
+                        productBtn.dataset.added = 'false';
+                        productBtn.classList.remove('text-green-600');
+                        productBtn.classList.add('text-gray-700');
+                    }
+                } catch (error) {
+                    console.error('Error removing item:', error);
                 }
-
-                totalPriceElement.textContent = `${total.toFixed(2)} ₴`;
-
-                // Видалення товару
-                document.querySelectorAll('[data-remove-id]').forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        const id = btn.dataset.removeId;
-                        cart.delete(id);
-                        updateCartModal();
-                    });
-                });
-
-                // Зменшення кількості
-                document.querySelectorAll('[data-decrease-id]').forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        const id = btn.dataset.decreaseId;
-                        if (cart.get(id).quantity > 1) {
-                            cart.get(id).quantity--;
-                        }
-                        updateCartModal();
-                    });
-                });
-
-                // Збільшення кількості
-                document.querySelectorAll('[data-increase-id]').forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        const id = btn.dataset.increaseId;
-                        cart.get(id).quantity++;
-                        updateCartModal();
-                    });
-                });
-            }
-
-            // Промокод
-            applyPromoBtn?.addEventListener('click', () => {
-                const code = promoInput.value.trim();
-                if (code === "SALE10") {
-                    discount = 10;
-                    alert("✅ Промокод застосовано: -10%");
-                } else {
-                    discount = 0;
-                    alert("❌ Невірний промокод");
-                }
-                updateCartModal();
-            });
-
-            // Оформлення
-            checkoutBtn?.addEventListener('click', () => {
-                window.location.href = "/checkout/";
             });
         });
+
+        document.querySelectorAll('[data-decrease-id]').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const productId = btn.dataset.decreaseId;
+                try {
+                    await updateQuantity(productId, 'decrease');
+                    loadCartData();
+                } catch (error) {
+                    console.error('Error decreasing quantity:', error);
+                }
+            });
+        });
+
+        // Increase quantity buttons
+        document.querySelectorAll('[data-increase-id]').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const productId = btn.dataset.increaseId;
+                try {
+                    await updateQuantity(productId, 'increase');
+                    loadCartData();
+                } catch (error) {
+                    console.error('Error increasing quantity:', error);
+                }
+            });
+        });
+    }
+
+    // 🎫 Apply promo code
+    applyPromoBtn?.addEventListener('click', async () => {
+        const promoCode = promoInput.value.trim();
+        
+        try {
+            const response = await fetch('/cart/promo/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken(),
+                },
+                body: JSON.stringify({
+                    promo_code: promoCode
+                })
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                currentDiscount = data.discount;
+                alert(data.message);
+                loadCartData(); // Refresh cart with new discount
+            } else {
+                alert(data.error || 'Failed to apply promo code');
+            }
+        } catch (error) {
+            console.error('Error applying promo:', error);
+            alert('Сталася помилка при застосуванні промокоду');
+        }
+    });
+
+    function updateCartCount(count) {
+        const cartCountElement = document.getElementById('cart-count');
+        if (cartCountElement) {
+            cartCountElement.textContent = count;
+            cartCountElement.classList.toggle('hidden', count === 0);
+        }
+    }
+
+    checkoutBtn?.addEventListener('click', (e) => {
+    });
+
+    loadCartData();
+
+    async function initializeProductButtons() {
+        try {
+            const response = await fetch('/cart/get/');
+            const data = await response.json();
+            
+            data.items.forEach(item => {
+                const productBtn = document.querySelector(`[data-product-id="${item.id}"]`);
+                if (productBtn) {
+                    productBtn.dataset.added = 'true';
+                    productBtn.classList.remove('text-gray-700');
+                    productBtn.classList.add('text-green-600');
+                }
+            });
+        } catch (error) {
+            console.error('Error initializing product buttons:', error);
+        }
+    }
+
+    // Initialize product button states
+    initializeProductButtons();
+});
     </script>
 
 
