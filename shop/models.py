@@ -97,7 +97,6 @@ class Product(models.Model):
     #in_stock = models.BooleanField(default=True)
 
 
-    @property
     def get_image(self):
         if self.image:
             return self.image.url
