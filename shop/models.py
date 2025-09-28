@@ -77,7 +77,6 @@ class Product(models.Model):
     brand = models.CharField(max_length=100, blank=True, null=True)   
     country = models.CharField(max_length=100, blank=True, null=True) 
     seller = models.CharField(max_length=100, blank=True, null=True)  
-    is_deleted = models.BooleanField(default=False)  # ✅ м’яке видалення
 
     # Нове поле для розміру
     SIZE_CHOICES = [
