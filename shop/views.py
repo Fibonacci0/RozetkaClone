@@ -240,6 +240,16 @@ def process_payment(request):
         return redirect('payment_page')
 
 
+
+def clear_cart(request):
+    request.session['cart'] = []
+    request.session.modified = True
+    return redirect('cart_page')
+
+
+
+
+
 def order_success(request, order_number):
     """Order success page"""
     order = get_object_or_404(Order, order_number=order_number)
@@ -963,6 +973,24 @@ def cart_page(request):
         "cart": cart,
         "products": products,
     })
+
+
+
+
+def cart_update_quantity(request, pk):
+    if request.method == "POST":
+        quantity = int(request.POST.get("quantity", 1))
+        cart = request.session.get('cart', [])
+
+        for item in cart:
+            if int(item["id"]) == int(pk):
+                item["quantity"] = max(1, quantity)  
+                break
+
+        request.session['cart'] = cart
+        request.session.modified = True
+
+    return redirect('cart_page')
 
 
 def get_cart_items(request):

@@ -1,0 +1,49 @@
+{% extends "_layout.html" %}
+
+{% block content %}
+<h1>Кошик</h1>
+
+{% if items %}
+  <table>
+    <thead>
+      <tr>
+        <th>Товар</th>
+        <th>Кількість</th>
+        <th>Ціна</th>
+        <th>Сума</th>
+        <th>Дія</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in items %}
+        <tr>
+          <td>{{ item.product.name }}</td>
+          <td>
+            <form method="post" action="{% url 'cart_update_quantity' item.product.id %}">
+              {% csrf_token %}
+              <input type="number" name="quantity" value="{{ item.quantity }}" min="1" style="width: 60px;">
+              <button type="submit">⟳</button>
+            </form>
+          </td>
+          <td>{{ item.product.price }} грн</td>
+          <td>{{ item.price }} грн</td>
+          <td>
+            <a href="{% url 'cart_remove' item.product.id %}">✖</a>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <p><strong>Підсумкова сума:</strong> {{ total_price }} грн</p>
+
+  <form method="post" action="{% url 'cart_clear' %}">
+    {% csrf_token %}
+    <button type="submit">Очистити кошик</button>
+  </form>
+
+{% else %}
+  <p>Кошик порожній</p>
+{% endif %}
+
+{% endblock %}

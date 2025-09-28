@@ -41,6 +41,9 @@ urlpatterns = [
     path('order/<str:order_number>/', views.order_detail, name='order_detail'),
         # Favorites AJAX endpoint
     path('favorites/json/', views.favorites_list, name='favorites_list'),
+    path('cart/clear/', views.clear_cart, name='clear_cart'),
+    path("cart/update/<int:product_id>/", views.cart_update_quantity, name="cart_update_quantity"),
+
 
 
 ]
